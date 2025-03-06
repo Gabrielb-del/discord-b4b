@@ -69,12 +69,11 @@ MAPEAMENTO_REVERSO = {
     "Isaac Miguel da Silva Campos": "Isaac",
     "Livia Kai Lani Gomes de Oliveira": "Livia",
     "Sofia Helena Vieira Domingues": "Sofia",
-    
 }
 
 def esta_no_horario():
     agora = datetime.datetime.now()
-    return agora.weekday() < 5 and 9 <= agora.hour < 18  # Segunda a sexta, entre 9h e 18h
+    return agora.weekday() < 5 and 9 <= agora.hora < 18  # Segunda a sexta, entre 9h e 18h
 
 def carregar_ranking():
     try:
@@ -187,8 +186,12 @@ async def on_ready():
     enviar_ranking_periodico.start()
     resetar_ranking.start()
 
-@bot.command()
+@bot.command() 
 async def ranking(ctx):
+    if ctx.channel.id != CANAL_ID:
+        await ctx.send("❌ Este comando só pode ser usado no canal de prospecção.")
+        return
+
     ranking = contar_contas_por_consultor()
     if not ranking:
         await ctx.send("📊 O ranking ainda está vazio!")
@@ -207,6 +210,10 @@ async def ranking(ctx):
 
 @bot.command()
 async def negada(ctx):
+    if ctx.channel.id != CANAL_ID:
+        await ctx.send("❌ Este comando só pode ser usado no canal de prospecção.")
+        return
+
     ranking = contar_contas_por_consultor()
     autor_discord = ctx.author.name.lower()  # Pegando o nome de usuário no formato minúsculo
     operador_nome = MAPEAMENTO_USUARIOS.get(autor_discord, autor_discord)

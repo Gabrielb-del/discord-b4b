@@ -7,6 +7,8 @@ import asyncio
 import datetime
 from discord.ext import commands, tasks
 from datetime import datetime, time
+import unicodedata
+
 
 
 
@@ -45,19 +47,16 @@ MAPEAMENTO_USUARIOS = {
     "sofiavieira.b4b": "Sofia Helena Vieira Domingues",
 }
 
-# Carregar dados existentes
 def carregar_dados():
     if os.path.exists(ARQUIVO_JSON):
         with open(ARQUIVO_JSON, "r", encoding="utf-8") as f:
             try:
                 dados = json.load(f)
-                if isinstance(dados, list):  # Verifica se é uma lista
+                if isinstance(dados, list):
                     return dados
                 else:
-                    print("Arquivo JSON não contém uma lista. Convertendo para lista.")
                     return []
             except json.JSONDecodeError:
-                print("Erro ao decodificar o arquivo JSON. Retornando lista vazia.")
                 return []
     return []
 
@@ -65,31 +64,39 @@ contas_abertas = carregar_dados()
 
 intents = discord.Intents.default()
 intents.messages = True
-intents.message_content = True  # Permite que o bot leia o conteúdo das mensagens
+intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Função para validar CNPJ
+def normalizar_status(status):
+    return ''.join(c for c in unicodedata.normalize('NFKD', status) if not unicodedata.combining(c)).lower()
+
+def validar_status(status):
+    status_normalizado = normalizar_status(status)
+    return status_normalizado in ["analise", "aprovada"]
+
+def padronizar_status(status):
+    status_normalizado = normalizar_status(status)
+    if status_normalizado == "analise":
+        return "Análise"
+    elif status_normalizado == "aprovada":
+        return "Aprovada"
+    else:
+        return status
+
 def validar_cnpj(cnpj):
     regex = r"^\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}$"
     return re.match(regex, cnpj) is not None
 
-# Função para validar Status
-def validar_status(status):
-    return status.lower() in ["análise", "aprovada"]
-
-# Função para validar Origem
 def validar_origem(origem):
     return origem in ["Lead Manual", "Repescagem", "Discador", "Mensageria", "Indicação"]
 
-# Função para validar E-mail
 def validar_email(email):
     return "@" in email
 
-# Função para resetar o JSON de contas abertas
-@tasks.loop(time=time(hour=0, minute=0))  # Reset à meia-noite
+@tasks.loop(time=time(hour=0, minute=0))
 async def resetar_contas():
     global contas_abertas
-    contas_abertas = []  # Reseta a lista de contas
+    contas_abertas = []
     with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
         json.dump(contas_abertas, f, indent=4, ensure_ascii=False)
     print("🔄 Contas resetadas para o novo dia.")
@@ -97,31 +104,25 @@ async def resetar_contas():
 @bot.event
 async def on_ready():
     print(f'Logado como {bot.user}')
-    resetar_contas.start()  # Inicia a tarefa de reset ao ligar o bot
+    resetar_contas.start()
 
 @bot.event
 async def on_message(message):
-    if message.author.bot:  # Ignora mensagens enviadas por bots
+    if message.author.bot:
         return
 
     await bot.process_commands(message)
 
-    print(f'Mensagem recebida no canal {message.channel.name} (ID: {message.channel.id}): {message.content}')  # Depuração
-
     if message.author == bot.user:
         return
 
-    # Verificar se a mensagem veio do canal de prospecção pela ID
     if message.channel.id == ID_CANAL_MONITORADO:
-        # Verificar se a mensagem contém pelo menos alguns campos obrigatórios
         if not any(keyword in message.content for keyword in ["Empresa:", "CNPJ:", "Nome:", "Tel:", "E-mail:", "Origem:", "Consultor:", "Status:"]):
-            return  # Ignora a mensagem se não for uma conta aberta
+            return
 
-        # Limpar espaços extras e quebras de linha
         dados = message.content.strip().replace("\n", "").replace("\r", "")
-        print(f'Dados antes de processar: "{dados}"')  # Depuração
+        print(f'Dados antes de processar: "{dados}"')
 
-        # Regex para capturar os dados
         padrao = {
             "empresa": r"Empresa:\s*(.*?)(?=\s*CNPJ:|$)",
             "cnpj": r"CNPJ:\s*(\d+)(?=\s*Nome:|$)",
@@ -139,52 +140,46 @@ async def on_message(message):
             resultado = re.search(regex, dados)
             if resultado:
                 conta[chave] = resultado.group(1).strip()
-                print(f'Campo "{chave}" encontrado: {conta[chave]}')  # Depuração
+                print(f'Campo "{chave}" encontrado: {conta[chave]}')
             else:
                 campos_faltantes.append(chave)
-                print(f'Campo "{chave}" não encontrado na mensagem.')  # Depuração
+                print(f'Campo "{chave}" não encontrado na mensagem.')
 
-        # Verificar se todos os campos obrigatórios estão presentes
         if len(campos_faltantes) > 0:
             await message.reply(f"❌ Faltam os seguintes campos: {', '.join(campos_faltantes)}. Por favor, envie novamente.")
             return
 
-        # Validação do CNPJ
         if 'cnpj' in conta:
             if not validar_cnpj(conta['cnpj']):
                 await message.reply("❌ CNPJ inválido. O CNPJ deve ter 14 dígitos.")
                 return
 
-        # Validação do Status
         if 'status' in conta:
+            status_normalizado = normalizar_status(conta['status'])
             if not validar_status(conta['status']):
                 await message.reply("❌ Status inválido. Use apenas 'Análise' ou 'Aprovada'.")
                 return
+            conta['status'] = padronizar_status(conta['status'])
 
-        # Validação da Origem
         if 'origem' in conta:
             if not validar_origem(conta['origem']):
                 await message.reply("❌ Origem inválida. Use apenas 'Lead Manual', 'Repescagem', 'Discador', 'Mensageria' ou 'Indicação'.")
                 return
 
-        # Validação do E-mail
         if 'email' in conta:
             if not validar_email(conta['email']):
                 await message.reply("❌ E-mail inválido. O e-mail deve conter '@'.")
                 return
 
-        # Mapear o nome de usuário do Discord para o nome do consultor
-        nome_usuario = message.author.name  # Nome de usuário do Discord
+        nome_usuario = message.author.name
         if nome_usuario in MAPEAMENTO_USUARIOS:
             conta['consultor'] = MAPEAMENTO_USUARIOS[nome_usuario]
         else:
             await message.reply(f"❌ Nome de usuário '{nome_usuario}' não está mapeado. Contate o administrador.")
             return
 
-        # Verificar se o CNPJ já foi registrado
         if 'cnpj' in conta:
             if not any('cnpj' in c and c['cnpj'] == conta['cnpj'] for c in contas_abertas):
-                # Adicionar o ID da mensagem à conta
                 conta['mensagem_id'] = message.id
                 contas_abertas.append(conta)
                 with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
@@ -199,12 +194,10 @@ async def on_message(message):
 
 @bot.event
 async def on_message_delete(message):
-    # Verificar se a mensagem excluída está no canal de prospecção
     if message.channel.id == ID_CANAL_MONITORADO:
-        print(f'Mensagem excluída detectada: ID {message.id}')  # Depuração
+        print(f'Mensagem excluída detectada: ID {message.id}')
         for conta in contas_abertas:
             if 'mensagem_id' in conta and conta['mensagem_id'] == message.id:
-                # Remover a conta
                 contas_abertas.remove(conta)
                 with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
                     json.dump(contas_abertas, f, indent=4, ensure_ascii=False)
@@ -213,23 +206,19 @@ async def on_message_delete(message):
 
 @bot.command()
 async def exportar(ctx):
-    print(f'Comando "!exportar" recebido no canal {ctx.channel.name} (ID: {ctx.channel.id})')  # Depuração
+    print(f'Comando "!exportar" recebido no canal {ctx.channel.name} (ID: {ctx.channel.id})')
     agora = datetime.datetime.now()
 
     if contas_abertas:
         for conta in contas_abertas:
             if "data" not in conta:
-                conta["data"] = datetime.now().strftime("%d/%m/%Y")  # Formato: DD/MM/AAAA
+                conta["data"] = datetime.now().strftime("%d/%m/%Y")
 
-        # Filtrando apenas os campos necessários
         colunas_desejadas = ["data", "cnpj", "empresa", "consultor", "origem", "status"]
         df = pd.DataFrame(contas_abertas)
-
-        # Garantindo que apenas as colunas desejadas apareçam e lidando com valores ausentes
         df = df[[col for col in colunas_desejadas if col in df.columns]].fillna("")
-
-        # Nome do arquivo
-        arquivo_excel = f"contas_abertas{agora}.xlsx"
+        horario = agora.strftime("%d%m%H%M")
+        arquivo_excel = f"contas_abertas{horario}.xlsx"
         df.to_excel(arquivo_excel, index=False)
 
         await ctx.send("Aqui está o arquivo de contas abertas:", file=discord.File(arquivo_excel))

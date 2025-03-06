@@ -11,7 +11,7 @@ DATA_FILE = "contatos.json"
 CANAL_QUALIFICACAO_ID = 1321967249111781398 
 
 QUALIFICADORES = [
-    "Nazarine", "Luiz", "Hellen", "Augusto", "Thiago Barbosa", "Thiago Vieira", "Baunilia"
+    "Nazarine", "Luiz", "Augusto", "Thiago Barbosa", "Thiago Vieira"
 ]
 
 
@@ -20,7 +20,6 @@ MAPEAMENTO_USUARIOS = {
     "luizleite.b4b_57110": "Luiz",
     "augustobueno.b4b": "Augusto",
     "guilermenazarine.b4b": "Nazarine",
-    "hellenanuncicao.b4b": "Hellen",
     "thiagobarbosa.b4b": "Thiago Barbosa",
     "thiagovieira.b4b": "Thiago Vieira"
 
@@ -45,7 +44,7 @@ async def enviar_contatos_periodicos():
         data_atual = agora.strftime("%d/%m")
         
         total_contatos = sum(contatos.values())  
-        mensagem = f"**CONTATOS {data_atual} ✨🐺**\n\n"
+        mensagem = f"**CONTATOS {data_atual} ✨📞**\n\n"
 
         for qualificador in QUALIFICADORES:
             quantidade = contatos.get(qualificador, 0)
