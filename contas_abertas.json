@@ -394,5 +394,38 @@
         "consultor": "Vinicius Araujo Silva",
         "status": "ANÁLISE",
         "mensagem_id": 1360303881174913067
+    },
+    {
+        "empresa": "NEXAGON LTDA",
+        "cnpj": "60086471000196",
+        "nome": "DAVID WAGNER SOARES DE ALMEIDA",
+        "telefone": "5521994867621",
+        "email": "david@nexagon.com.br",
+        "origem": "REPESCAGEM",
+        "consultor": "Abigail Dias Xavier Genaro",
+        "status": "APROVADA",
+        "mensagem_id": 1360307219463274506
+    },
+    {
+        "empresa": "M ISABEL BESSA MARINHO SERVICOS ODONTOLOGICOS",
+        "cnpj": "60252468000103",
+        "nome": "Marta Isabel",
+        "telefone": "551184519809",
+        "email": "xx@xx.com",
+        "origem": "LEAD MANUAL",
+        "consultor": "Vinicius Araujo Silva",
+        "status": "ANÁLISE",
+        "mensagem_id": 1360308257448525855
+    },
+    {
+        "empresa": "LUBELA COMERCIO DE ROUPAS E ACESSORIOS LTDA",
+        "cnpj": "59781928000101",
+        "nome": "FELIPE AUGUSTO DIAS",
+        "telefone": "5519991783894",
+        "email": "xx@cc.com",
+        "origem": "DISCADOR",
+        "consultor": "Sara Gabriely Escobar",
+        "status": "ANÁLISE",
+        "mensagem_id": 1360309222637568250
     }
 ]
