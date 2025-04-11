@@ -361,5 +361,38 @@
         "consultor": "Mariana Gabriela Ferreira Barboza",
         "status": "APROVADA",
         "mensagem_id": 1360297581812645958
+    },
+    {
+        "empresa": "TCL MADEIRAS E MATERIAIS DE CONSTRUCAO LTDA",
+        "cnpj": "60260602000100",
+        "nome": "THIAGO CHAVES LEITE",
+        "telefone": "553183165525",
+        "email": "danielle@accountassessoria.com.br",
+        "origem": "DISCADOR",
+        "consultor": "Sofia Helena Vieira Domingues",
+        "status": "ANÁLISE",
+        "mensagem_id": 1360300509713666180
+    },
+    {
+        "empresa": "FRUTAMAR LTDA",
+        "cnpj": "59688546000120",
+        "nome": "Bruno Leal Coelho Pacifico",
+        "telefone": "5586995680811",
+        "email": "ic.contabil2022@outlook.com",
+        "origem": "DISCADOR",
+        "consultor": "Yasmin Leticia da Silva Santos",
+        "status": "APROVADA",
+        "mensagem_id": 1360301396276150423
+    },
+    {
+        "empresa": "NOVO TEMPO PARTICIPACOES LTDA",
+        "cnpj": "60131107000109",
+        "nome": "CLAUDIO DANIEL ROCHA BARBOSA",
+        "telefone": "556199723203",
+        "email": "c.d.rocha@uol.com.br",
+        "origem": "REPESCAGEM",
+        "consultor": "Vinicius Araujo Silva",
+        "status": "ANÁLISE",
+        "mensagem_id": 1360303881174913067
     }
 ]
