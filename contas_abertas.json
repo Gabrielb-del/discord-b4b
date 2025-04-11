@@ -427,5 +427,38 @@
         "consultor": "Sara Gabriely Escobar",
         "status": "ANÁLISE",
         "mensagem_id": 1360309222637568250
+    },
+    {
+        "empresa": "HUBRA NEGOCIOS E SERVICOS LTDA",
+        "cnpj": "59451917000155",
+        "nome": "Michael Huth",
+        "telefone": "5511984733433",
+        "email": "michael.huth@maag.com",
+        "origem": "DISCADOR",
+        "consultor": "Mariana Gabriela Ferreira Barboza",
+        "status": "APROVADA",
+        "mensagem_id": 1360314168749723819
+    },
+    {
+        "empresa": "PRIME CLUB CONFECCOES LTDA",
+        "cnpj": "59494811000139",
+        "nome": "Leonardo Pessoa Fernandes",
+        "telefone": "5582996290069",
+        "email": "leopessoa95@hotmail.com",
+        "origem": "DISCADOR",
+        "consultor": "Mariana Gabriela Ferreira Barboza",
+        "status": "ANÁLISE",
+        "mensagem_id": 1360314916380082227
+    },
+    {
+        "empresa": "PHENIX ENGENHARIA E CONSTRUCAO LTDA",
+        "cnpj": "59470444000133",
+        "nome": "LEONARDO REIS RODRIGUES SOARES",
+        "telefone": "34988258960",
+        "email": "PHENIXENGENHARIAECONSTRUCAO@GMAIL.COM",
+        "origem": "DISCADOR",
+        "consultor": "Matheus Augusto Magoga Cabete",
+        "status": "ANÁLISE",
+        "mensagem_id": 1360319327999623399
     }
 ]
