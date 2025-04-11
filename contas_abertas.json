@@ -328,5 +328,38 @@
         "consultor": "Beatriz Pádua Soares",
         "status": "ANÁLISE",
         "mensagem_id": 1360296405717094496
+    },
+    {
+        "empresa": "ALUMICERTO PORTAS E ESQUADRIAS LTDA",
+        "cnpj": "59464714000101",
+        "nome": "DEBORA CAROLINE BARRIL GARBELIN",
+        "telefone": "5549991569963",
+        "email": "stertzpremiunjoao@gmail.com",
+        "origem": "DISCADOR",
+        "consultor": "Alyssa Santos Furtuoso",
+        "status": "ANÁLISE",
+        "mensagem_id": 1360297179704721679
+    },
+    {
+        "empresa": "HELYAB CAMPOS MARTINS LTDA",
+        "cnpj": "60349416000141",
+        "nome": "HELYAB CAMPOS MARTINS ALVES",
+        "telefone": "5564992164590",
+        "email": "helyabwork@gmail.com",
+        "origem": "DISCADOR",
+        "consultor": "Giovana Vitória da Silva",
+        "status": "ANÁLISE",
+        "mensagem_id": 1360297212264841298
+    },
+    {
+        "empresa": "P DE T DE LIMA",
+        "cnpj": "59974092000153",
+        "nome": "PAULO DE TARCIO LIMA",
+        "telefone": "5584988984466",
+        "email": "paulodetarciolima@gmail.com",
+        "origem": "DISCADOR",
+        "consultor": "Mariana Gabriela Ferreira Barboza",
+        "status": "APROVADA",
+        "mensagem_id": 1360297581812645958
     }
 ]
