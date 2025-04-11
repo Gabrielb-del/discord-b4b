@@ -11,7 +11,7 @@ DATA_FILE = "contatos.json"
 CANAL_QUALIFICACAO_ID = 1321967249111781398 
 
 QUALIFICADORES = [
-    "Nazarine", "Luiz", "Augusto", "Thiago Barbosa", "Thiago Vieira"
+    "Nazarine", "Luiz", "Augusto", "Thiago Barbosa", "Ariane", "Carolina"
 ]
 
 
@@ -20,8 +20,10 @@ MAPEAMENTO_USUARIOS = {
     "luizleite.b4b_57110": "Luiz",
     "augustobueno.b4b": "Augusto",
     "guilermenazarine.b4b": "Nazarine",
-    "thiagobarbosa.b4b": "Thiago Barbosa",
-    "thiagovieira.b4b": "Thiago Vieira"
+    "thiagobarbosa.b4b_38105": "Thiago Barbosa",
+    "arianebortolazzob4b": "Ariane",
+    "carolinamattoos.b4b_04846": "Carolina",
+
 
 }
 def carregar_contatos():

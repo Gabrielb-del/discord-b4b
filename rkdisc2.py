@@ -7,11 +7,10 @@ import datetime
 TOKEN = "MTMzNzE2NzA3ODA4MzI2ODY0OA.GX7hzf.QfrF3TVKrR4lwbWRUKttIG64V8YNQ_Jn8iEJn8"
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 DATA_FILE = "ranking.json"
-META_DIARIA = 70 
+META_DIARIA = 30
 CANAL_ID = 1321965052454109194
 CONTAS_ABERTAS_FILE = "contas_abertas.json"  # Arquivo JSON das contas abertas
 
-# Mapeamento de usuários (nome de usuário do Discord -> nome no ranking)
 MAPEAMENTO_USUARIOS = {
     "gabrielb.b4b": "Baunilia",
     "alyssafurtuoso.b4b": "Alyssa",
@@ -44,16 +43,15 @@ MAPEAMENTO_USUARIOS = {
     "matheusaugusto.b4b_45858": "Matheus",
     "lucaspais.b4b": "Lucas",
     "thiagomelo.b4b": "Thiago",
-    "juliovilchez.b4b_37346": "Julião",
+    "juliovilchez.b4b_37346": "Julio",
     "aghataalves.b4b": "Aghata",
     "murilopires_b4b": "Murilo Pires",
     "marianabarboza.b4b": "Mariana",
     "murilomattos.b4b_83994": "Murilo Mattos",
-    "tamirismarteline.b4b": "Tamiris",
-    "biancasarto.b4b_49906": "Bianca",
-    "julianasilva.b4b": "Juliana",
-    "larissasilva_04782": "Larissa",
-    "beatrizsoares.b4b": "Beatriz Soares"
+    "luizleite.b4b_57110": "Luiz Augusto",
+    "thiagobarbosa.b4b_38105": "Thiago Barbosa",
+    "andreybizao.b4b": "Andrey",
+    "hellenanuncicao.b4b": "Hellen"
 
 
 }
@@ -91,20 +89,18 @@ MAPEAMENTO_REVERSO = {
     "Emilly Dos Santos Forner": "Emilly",
     "Lucas Henrique Vieira Pais": "Lucas",
     "Thiago Dos Santos Melo": "Thiago",
-    "Julio Gonçalves Zarate Vilchez": "Julião",
+    "Julio Gonçalves Zarate Vilchez": "Julio",
     "Aghata Alves dos Santos": "Aghata",
     "Mariana Gabriela Ferreira Barboza": "Mariana",
     "Murilo Ramalho Pires": "Murilo Pires",
     "Murilo Miguel de Mattos Ozorio": "Murilo Mattos",
-    "Tamiris Mariany Marteline": "Tamiris",
-    "Bianca Sarto dos Santos": "Bianca",
-    "Juliana Cristina da Silva Reis": "Juliana",
-    "Larissa Vitória Silva Sanches": "Larissa",
-    "Beatriz Pádua Soares": "Beatriz Soares"
+    "Thiago da Silva Barbosa": "Thiago Barbosa",
+    "Luiz Augusto Bucharelli da Graça Leite": "Luiz Augusto",
+    "Andrey de Souza Batista Bizão": "Andrey",
+    "Hellen Geovana Silva Anunciação": "Hellen"
 
 
 }
-
 def esta_no_horario():
     agora = datetime.datetime.now()
     return agora.weekday() < 5 and 9 <= agora.hora < 18  # Segunda a sexta, entre 9h e 18h
@@ -151,15 +147,24 @@ async def enviar_ranking_periodico():
     agora = datetime.datetime.now()
 
     # Verifica se é um dia útil (segunda a sexta) e se está dentro do horário de funcionamento
-    if agora.weekday() < 5 and 9 <= agora.hour < 18:
+    if agora.weekday() == 5 and 8 <= agora.hour < 13:
         ranking = contar_contas_por_consultor()
         data_atual = agora.strftime("%d/%m")
 
         operadores = [
-            "Abigail", "Alyssa", "Eduarda", "Giovana Vitória", "João", "Mia",
-            "Rita", "Sara", "Thaleco", "Vinícius", "Yasmin", "Yuri", "Gabriela", "Beatriz Duarte",
-            "Maria Luisa", "Isaac", "Beatriz Oliveira", "Giovana Martins", "Sofia", "Matheus", "Christyan", 
-            "Thiago", "Murilo Pires", "Mariana", "Tamiris", "Bianca", "Juliana", "Larissa", "Beatriz Soares"
+            "Emilly", 
+            "Mariana",
+            "Giovana Martins",            
+            "Giovanni",
+            "Miriam",
+            "Luiz Augusto",
+            "Julio", 
+            "Ariane",
+            "Maria Luisa",
+            "Thiago Barbosa",
+            "Andrey",
+            "Hellen"
+            
         ]
 
         total_contas = sum(ranking.values())

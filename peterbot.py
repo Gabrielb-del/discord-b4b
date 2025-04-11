@@ -21,9 +21,9 @@ ARQUIVO_JSON = "contas_abertas.json"
 MAPEAMENTO_USUARIOS = {
     "gabrielb.b4b": "Gabriel Baunilia Silva",
     "alyssafurtuoso.b4b": "Alyssa Santos Furtuoso",
-    "abigailgenaro.b4b": "Abigail Dias Xavier Genaro",
+    "abigailgenaro.b4b_51008": "Abigail Dias Xavier Genaro",
     "aghataalves.b4b": "Aghata Alves dos Santos",
-    "annasilva.b4b": "Anna Julya De Paula Dias Da Silva",
+    "annasilva.b4b_72247": "Anna Julya De Paula Dias Da Silva",
     "arianebortolazzob4b": "Ariane Cristina Almeida Bortolazzo",
     "eduardameira.b4b": "Eduarda Saraiva Meira",
     "giovanasilva.b4b": "Giovana Vitória da Silva",
@@ -32,19 +32,41 @@ MAPEAMENTO_USUARIOS = {
     "miriamfranzoi.b4b": "Miriam Helena Franzoi",
     "pedrosilva.b4b_51785": "Pedro Elias Almeida Silva",
     "ritacarmo.b4b": "Rita de Cassia Bueno do Carmo",
-    "saraescobar.b4b": "Sara Gabriely Escobar",
+    "saraescobar.b4b_62845": "Sara Gabriely Escobar",
     "thalessebastiaob4b": "Thales Njea Ferreira Sebastião",
     "viniciusilva.b4b": "Vinicius Araujo Silva",
-    "yasminsantos.b4b": "Yasmin Leticia da Silva Santos",
+    "yasminsantos.b4b_53785": "Yasmin Leticia da Silva Santos",
     "yurisales.b4b": "Yuri Costa Cataia de Sales",
     "beatrizduarte.b4b": "Beatriz Duarte Reis",
-    "gabrielgigo.b4b": "Gabriela Gigo de Paula",
+    "gabrielagigo.b4b_30518": "Gabriela Gigo de Paula",
     "maluribeiro.b4b": "Maria Luisa Ribeiro da Silva",
-    "carolinamattos.b4b": "Carolina de Mattos",
+    "carolinamattoos.b4b_04846": "Carolina de Mattos",
     "giovanamartins.b4b": "Giovana Martins da Cruz Carvalho",
     "isaaccampos.b4b": "Isaac Miguel da Silva Campos",
-    "liviagomes.b4b": "Livia Kai Lani Gomes de Oliveira",
-    "sofiavieira.b4b": "Sofia Helena Vieira Domingues",
+    "sofiavieira.b4b_52711": "Sofia Helena Vieira Domingues",
+    "beatrizoliveira.b4b_00144": "Beatriz Reis de Oliveira",
+    "christyanalves.b4b_69243":"Christyan Picoloto Alves",
+    "emillyforner.b4b": "Emilly Dos Santos Forner",
+    "matheusaugusto.b4b_45858": "Matheus Augusto Magoga Cabete",
+    "lucaspais.b4b" : "Lucas Henrique Vieira Pais",
+    "thiagomelo.b4b" : "Thiago Dos Santos Melo",
+    "aghataalves.b4b": "Aghata Alves dos Santos",
+    "juliovilchez.b4b_37346": "Julio Gonçalves Zarate Vilchez",
+    "augustobueno.b4b": "Augusto Bueno de Almeida",
+    "guilermenazarine.b4b": "Guilherme Barboza Nazarine",
+    "luizleite.b4b_57110": "Luiz Augusto Bucharelli da Graça Leite",
+    "thiagobarbosa.b4b_38105": "Thiago da Silva Barbosa",
+    "thiagovieira.b4b": "Thiago Gabriel Vieira",
+    "murilomattos.b4b_83994": "Murilo Miguel de Mattos Ozorio",
+    "andreybizao.b4b": "Andrey de Souza Batista Bizão",
+    "murilopires_b4b": "Murilo Ramalho Pires",
+    "marianabarboza.b4b": "Mariana Gabriela Ferreira Barboza",
+    "hellenanuncicao.b4b": "Hellen Geovana Silva Anunciação",
+    "tamirismarteline.b4b": "Tamiris Mariany Marteline",
+    "biancasarto.b4b_49906": "Bianca Sarto dos Santos",
+    "julianasilva.b4b": "Juliana Cristina da Silva Reis",
+    "larissasilva_04782": "Larissa Vitória Silva Sanches",
+    "beatrizsoares.b4b": "Beatriz Pádua Soares"
 }
 
 def carregar_dados():
@@ -77,9 +99,9 @@ def validar_status(status):
 def padronizar_status(status):
     status_normalizado = normalizar_status(status)
     if status_normalizado == "analise":
-        return "Análise"
+        return "ANÁLISE"
     elif status_normalizado == "aprovada":
-        return "Aprovada"
+        return "APROVADA"
     else:
         return status
 
@@ -87,8 +109,35 @@ def validar_cnpj(cnpj):
     regex = r"^\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}$"
     return re.match(regex, cnpj) is not None
 
+
+def padrao_origem(origem):
+    return ''.join(c for c in unicodedata.normalize('NFD', origem) if not unicodedata.combining(c)).lower()
+
 def validar_origem(origem):
-    return origem in ["Lead Manual", "Repescagem", "Discador", "Mensageria", "Indicação"]
+    origem_normalizado = padrao_origem(origem)
+    return origem_normalizado in ["lead manual", "repescagem", "discador", "mensageria", "indicacao", "ura"]
+
+def padronizar_origem(origem):
+    origem_normalizado = padrao_origem(origem)
+    if origem_normalizado == "lead manual":
+        return "LEAD MANUAL"
+    elif origem_normalizado == "repescagem":
+        return "REPESCAGEM"
+    
+    elif origem_normalizado == "discador":
+        return "DISCADOR"
+    
+    elif origem_normalizado == "mensageria":
+        return "MENSAGERIA"
+    elif origem_normalizado == "indicacao":
+        return "INDICAÇÃO"
+    
+    elif origem_normalizado == "ura":
+        return "URA"
+    else:
+
+        return origem
+
 
 def validar_email(email):
     return "@" in email
@@ -162,9 +211,11 @@ async def on_message(message):
             conta['status'] = padronizar_status(conta['status'])
 
         if 'origem' in conta:
+            origem_normalizado  = padrao_origem(conta['origem'])
             if not validar_origem(conta['origem']):
-                await message.reply("❌ Origem inválida. Use apenas 'Lead Manual', 'Repescagem', 'Discador', 'Mensageria' ou 'Indicação'.")
+                await message.reply("❌ Origem inválida. Use apenas 'Lead Manual', 'Repescagem', 'Discador', 'Mensageria', 'Ura' ou 'Indicação'.")
                 return
+            conta['origem'] = padronizar_origem(conta['origem'])
 
         if 'email' in conta:
             if not validar_email(conta['email']):
@@ -207,7 +258,6 @@ async def on_message_delete(message):
 @bot.command()
 async def exportar(ctx):
     print(f'Comando "!exportar" recebido no canal {ctx.channel.name} (ID: {ctx.channel.id})')
-    agora = datetime.datetime.now()
 
     if contas_abertas:
         for conta in contas_abertas:
@@ -217,8 +267,7 @@ async def exportar(ctx):
         colunas_desejadas = ["data", "cnpj", "empresa", "consultor", "origem", "status"]
         df = pd.DataFrame(contas_abertas)
         df = df[[col for col in colunas_desejadas if col in df.columns]].fillna("")
-        horario = agora.strftime("%d%m%H%M")
-        arquivo_excel = f"contas_abertas{horario}.xlsx"
+        arquivo_excel = f"contas_abertas.xlsx"
         df.to_excel(arquivo_excel, index=False)
 
         await ctx.send("Aqui está o arquivo de contas abertas:", file=discord.File(arquivo_excel))
