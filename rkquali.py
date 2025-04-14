@@ -62,11 +62,14 @@ async def enviar_contatos_periodicos():
 
 @tasks.loop(time=datetime.time(hour=0, minute=0))
 async def resetar_contatos():
+    agora = datetime.datetime.now()
     print("🔄 Resetando os contatos...")
     salvar_contatos({})  
     canal = bot.get_channel(CANAL_QUALIFICACAO_ID)
-    if canal:
-        await canal.send("🌙 **Os contatos foram resetados!** Um novo dia começa. 🚀")
+    
+    if agora.weekday() < 5:
+        if canal:
+            await canal.send("🌙 **Os contatos foram resetados!** Um novo dia começa. 🚀")
 
 @bot.event
 async def on_ready():
