@@ -312,7 +312,7 @@ async def teams(ctx):
         roles = [role.name for role in member.roles]
         nome_rank = MAPEAMENTO_USUARIOS.get(member.name.lower())
         
-        if nome_rank:
+        if nome_rank and nome_rank in operadores:
             if CARGO_AGUIA in roles:
                 time_aguia.append(nome_rank)
             elif CARGO_BLACK_PANTHER in roles:
