@@ -105,6 +105,13 @@ MAPEAMENTO_REVERSO = {
 
 }
 
+operadores = [
+            "Abigail", "Alyssa", "Eduarda", "Giovana Vitória", "João", "Mia",
+            "Rita", "Sara", "Thaleco", "Vinícius", "Yasmin", "Yuri", "Gabriela", "Beatriz Duarte",
+            "Maria Luisa", "Isaac", "Beatriz Oliveira", "Giovana Martins", "Sofia", "Matheus", "Christyan", 
+            "Thiago", "Murilo Pires", "Mariana", "Tamiris", "Bianca", "Juliana", "Larissa", "Beatriz Soares"
+        ]
+
 def esta_no_horario():
     agora = datetime.datetime.now()
     return agora.weekday() < 5 and 9 <= agora.hora < 18  # Segunda a sexta, entre 9h e 18h
@@ -146,7 +153,8 @@ meta_batida = False
 
 @tasks.loop(minutes=30)
 async def enviar_ranking_periodico():
-    global meta_batida  # Usamos a variável global para controlar o estado
+    global meta_batida
+    global operadores  # Usamos a variável global para controlar o estado
 
     agora = datetime.datetime.now()
 
@@ -154,13 +162,6 @@ async def enviar_ranking_periodico():
     if agora.weekday() < 5 and 9 <= agora.hour < 18:
         ranking = contar_contas_por_consultor()
         data_atual = agora.strftime("%d/%m")
-
-        operadores = [
-            "Abigail", "Alyssa", "Eduarda", "Giovana Vitória", "João", "Mia",
-            "Rita", "Sara", "Thaleco", "Vinícius", "Yasmin", "Yuri", "Gabriela", "Beatriz Duarte",
-            "Maria Luisa", "Isaac", "Beatriz Oliveira", "Giovana Martins", "Sofia", "Matheus", "Christyan", 
-            "Thiago", "Murilo Pires", "Mariana", "Tamiris", "Bianca", "Juliana", "Larissa", "Beatriz Soares"
-        ]
 
         total_contas = sum(ranking.values())
         gap = max(META_DIARIA - total_contas, 0)
@@ -250,8 +251,15 @@ async def ranking(ctx):
 
     mensagem = f"**🏆 RANKING {data_atual}**\n"
     mensagem += f"🚀 **TOTAL CONTAS:** 💛 {total_contas} 🖤\n\n"
-    for i, (usuario, contas) in enumerate(ranking_ordenado, start=1):
-        mensagem += f"{i}º {usuario}: {contas}\n"
+    for operador in operadores:
+            contas = ranking.get(operador, 0)
+            contas_str = str(contas) if contas > 0 else ""
+            mensagem += f"{operador} - {contas_str}\n"
+
+    top3 = [op for op, c in ranking_ordenado[:3]]
+    if len(top3) >= 1: mensagem += f"\n 1º {top3[0]}\n"
+    if len(top3) >= 2: mensagem += f"2º {top3[1]}\n"
+    if len(top3) >= 3: mensagem += f"3º {top3[2]}\n"
 
     await ctx.send(mensagem)
 
