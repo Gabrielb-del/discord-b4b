@@ -4,7 +4,7 @@ import json
 import asyncio
 import datetime
 
-TOKEN = "aamKoAyi6H79QEtTBBt5g6UgnOWuZqX8"
+TOKEN = "MTMzNzE2NzA3ODA4MzI2ODY0OA.GRpZfN.UEmNy1fWnH1X5GwJXW7Oiy1yyeVFUMrjBWRqes"
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 DATA_FILE = "ranking.json"
 META_DIARIA = 70 
