@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 import json
 import datetime
 
-TOKEN = "MTMzNzE2NzA3ODA4MzI2ODY0OA.GX7hzf.QfrF3TVKrR4lwbWRUKttIG64V8YNQ_Jn8iEJn8"
+TOKEN = "MTMzODUzOTQxMjY4MTY1ODM3OA.Gd5vJ4.RDHatE6BI5hsyjNPbxLLJGPBNG0jP7lMnsB2AY"
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 RESET_HORARIO = datetime.time(hour=0, minute=0)  # Reset à meia-noite
