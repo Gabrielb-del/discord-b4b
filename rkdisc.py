@@ -292,4 +292,90 @@ async def add(ctx, nome: str, quantidade: int):
     salvar_ranking(ranking)
     await ctx.send(f"✅ {quantidade} conta(s) adicionada(s) para {nome}. Agora ele(a) tem {ranking[nome]} conta(s).")
 
+
+
+@bot.command()
+async def teams(ctx):
+    if ctx.channel.id != CANAL_ID:
+        await ctx.send("❌ Este comando só pode ser usado no canal de prospecção.")
+        return
+
+    # Cargos dos times
+    CARGO_AGUIA = "Team Águia"  # Substitua pelo nome exato do cargo
+    CARGO_BLACK_PANTHER = "Team Black Panther"  # Substitua pelo nome exato do cargo
+
+    # Coletar membros
+    time_aguia = []
+    time_bp = []
+    
+    for member in ctx.guild.members:
+        roles = [role.name for role in member.roles]
+        nome_rank = MAPEAMENTO_USUARIOS.get(member.name.lower())
+        
+        if nome_rank:
+            if CARGO_AGUIA in roles:
+                time_aguia.append(nome_rank)
+            elif CARGO_BLACK_PANTHER in roles:
+                time_bp.append(nome_rank)
+
+    ranking = contar_contas_por_consultor()
+    data = datetime.datetime.now().strftime("%d/%m %H:%M")
+    
+    # Calcular totais
+    total_aguia = sum(ranking.get(op, 0) for op in time_aguia)
+    total_bp = sum(ranking.get(op, 0) for op in time_bp)
+
+    # Ordenar por contas
+    time_aguia.sort(key=lambda x: (-ranking.get(x, 0), x))
+    time_bp.sort(key=lambda x: (-ranking.get(x, 0), x))
+
+    # Preparar tabela
+    header = f"**🏆 RANKING DOS TIMES - {data}**\n\n"
+    header += f"` TIME ÁGUIA 🦅 (Total: {total_aguia}) `\t\t` TIME BLACK PANTHER 🐾 (Total: {total_bp}) `\n\n"
+    
+    # Calcular larguras
+    max_width_aguia = max(len(op) for op in time_aguia) if time_aguia else 15
+    max_width_bp = max(len(op) for op in time_bp) if time_bp else 15
+    max_width_aguia = max(max_width_aguia, 15)  # Mínimo de 15 caracteres
+    max_width_bp = max(max_width_bp, 15)
+
+    # Construir linhas
+    lines = []
+    max_lines = max(len(time_aguia), len(time_bp))
+    
+    for i in range(max_lines):
+        linha = "`"
+        # Coluna Águia
+        if i < len(time_aguia):
+            op = time_aguia[i]
+            linha += f" {op.ljust(max_width_aguia)}: {str(ranking.get(op, 0)).rjust(2)} "
+        else:
+            linha += " ".ljust(max_width_aguia + 5)
+        
+        linha += " `\t\t` "
+        
+        # Coluna BP
+        if i < len(time_bp):
+            op = time_bp[i]
+            linha += f" {op.ljust(max_width_bp)}: {str(ranking.get(op, 0)).rjust(2)} "
+        else:
+            linha += " ".ljust(max_width_bp + 5)
+        
+        linha += " `"
+        lines.append(linha)
+
+    # Mensagem final
+    mensagem = header + "\n".join(lines)
+    
+    # Rodapé
+    diferenca = abs(total_aguia - total_bp)
+    if total_aguia > total_bp:
+        mensagem += f"\n\n🦅 O Time Águia está liderando por {diferenca} contas!"
+    elif total_bp > total_aguia:
+        mensagem += f"\n\n🐾 O Time Black Panther está liderando por {diferenca} contas!"
+    else:
+        mensagem += "\n\n⚖️ Os times estão empatados!"
+
+    await ctx.send(mensagem)
+
 bot.run(TOKEN)
