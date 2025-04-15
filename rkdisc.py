@@ -217,7 +217,6 @@ async def enviar_ranking_periodico():
 
 
 
-
 @tasks.loop(time=datetime.time(hour=0, minute=0))
 async def resetar_ranking():
     print("🔄 Resetando o ranking...")
