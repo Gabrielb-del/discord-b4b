@@ -353,7 +353,7 @@ async def teams(ctx):
         else:
             linha += " ".ljust(max_width_aguia + 5)
         
-        linha += " `\t\t` "
+        linha += " `\t\t\t\t\t` "
         
         # Coluna BP
         if i < len(time_bp):
