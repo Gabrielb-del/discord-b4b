@@ -271,7 +271,7 @@ async def exportar(ctx):
         colunas_desejadas = ["data", "cnpj", "empresa", "consultor", "origem", "status"]
         df = pd.DataFrame(contas_abertas)
         df = df[[col for col in colunas_desejadas if col in df.columns]].fillna("")
-        arquivo_excel = f"CONTAS_ABERTAS_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
+        arquivo_excel = f"CONTAS_ABERTAS_{datetime.now().strftime('%d%m%Y_%H%M%S')}.xlsx"
         df.to_excel(arquivo_excel, index=False)
 
         await ctx.send("Aqui está o arquivo de contas abertas:", file=discord.File(arquivo_excel))
