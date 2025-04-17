@@ -95,7 +95,7 @@ def normalizar_status(status):
 
 def validar_status(status):
     status_normalizado = normalizar_status(status)
-    return status_normalizado in ["analise", "aprovada"]
+    return status_normalizado in ["analise", "aprovada", "carimbada", "reprovada"]
 
 def padronizar_status(status):
     status_normalizado = normalizar_status(status)
@@ -103,6 +103,12 @@ def padronizar_status(status):
         return "ANÁLISE"
     elif status_normalizado == "aprovada":
         return "APROVADA"
+    elif status_normalizado == "carimbada":
+        return "CARIMBADA"
+    
+    elif status_normalizado == "reprovada":
+        return "REPROVADA"
+
     else:
         return status
 
@@ -210,7 +216,7 @@ async def on_message(message):
         if 'status' in conta:
             status_normalizado = normalizar_status(conta['status'])
             if not validar_status(conta['status']):
-                await message.reply("❌ Status inválido. Use apenas 'Análise' ou 'Aprovada'.")
+                await message.reply("❌ Status inválido. Use apenas 'Análise', 'Aprovada', 'Carimbada' ou 'Negada'.")
                 return
             conta['status'] = padronizar_status(conta['status'])
 

@@ -108,10 +108,10 @@ MAPEAMENTO_REVERSO = {
 }
 
 operadores = [
-            "Abigail", "Alyssa", "Eduarda", "Giovana Vitória", "João", "Mia",
+            "Abigail", "Alyssa", "Giovana Vitória", "João", "Mia",
             "Rita", "Sara", "Thaleco", "Vinícius", "Yasmin", "Yuri", "Gabriela", "Beatriz Duarte",
             "Maria Luisa", "Isaac", "Beatriz Oliveira", "Giovana Martins", "Sofia", "Matheus", "Christyan", 
-            "Thiago", "Murilo Pires", "Mariana", "Tamiris", "Bianca", "Juliana", "Larissa", "Beatriz Soares", "Victor Hugo"
+            "Thiago", "Mariana", "Tamiris", "Juliana", "Larissa", "Beatriz Soares", "Victor Hugo"
         ]
 
 def esta_no_horario():
@@ -143,6 +143,10 @@ def contar_contas_por_consultor():
     ranking = {}
 
     for conta in contas_abertas:
+        status = conta.get("status", "").upper()
+        if status in ["CARIMBADA", "REPROVADA"]:
+            continue
+
         consultor_completo = conta.get("consultor")
         if consultor_completo:
             # Converte o nome completo para o nome do ranking usando o mapeamento reverso
