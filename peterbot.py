@@ -216,7 +216,7 @@ async def on_message(message):
         if 'status' in conta:
             status_normalizado = normalizar_status(conta['status'])
             if not validar_status(conta['status']):
-                await message.reply("❌ Status inválido. Use apenas 'Análise', 'Aprovada', 'Carimbada' ou 'Negada'.")
+                await message.reply("❌ Status inválido. Use apenas 'Análise', 'Aprovada', 'Carimbada' ou 'Reprovada'.")
                 return
             conta['status'] = padronizar_status(conta['status'])
 
