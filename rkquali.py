@@ -22,7 +22,7 @@ MAPEAMENTO_USUARIOS = {
     "guilermenazarine.b4b": "Nazarine",
     "thiagobarbosa.b4b_38105": "Thiago Barbosa",
     "arianebortolazzob4b": "Ariane",
-    "carolinamattoos.b4b_04846": "Carolina",
+    "alexandrescarabelo.b4b": "Alexandre"
 
 
 }
