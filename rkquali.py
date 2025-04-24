@@ -11,7 +11,7 @@ DATA_FILE = "contatos.json"
 CANAL_QUALIFICACAO_ID = 1321967249111781398 
 
 QUALIFICADORES = [
-    "Nazarine", "Luiz", "Augusto", "Thiago Barbosa", "Ariane", "Carolina"
+    "Nazarine", "Luiz", "Augusto", "Thiago Barbosa", "Ariane", "Alexandre"
 ]
 
 
