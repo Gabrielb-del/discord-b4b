@@ -123,7 +123,7 @@ def padrao_origem(origem):
 
 def validar_origem(origem):
     origem_normalizado = padrao_origem(origem)
-    return origem_normalizado in ["lead manual", "repescagem", "discador", "mensageria", "indicacao", "ura","backoffice"]
+    return origem_normalizado in ["lead manual", "repescagem", "discador", "mensageria", "indicacao", "ura","backoffice", "repescagem ura"]
 
 def padronizar_origem(origem):
     origem_normalizado = padrao_origem(origem)
@@ -145,6 +145,9 @@ def padronizar_origem(origem):
     
     elif origem_normalizado == "backoffice":
         return "BACKOFFICE"
+    
+    elif origem_normalizado == "repescagem ura":
+        return "REPESCAGEM URA"
     else:
 
         return origem
@@ -166,6 +169,8 @@ async def on_ready():
     print(f'Logado como {bot.user}')
     resetar_contas.start()
 
+
+#Evento para verificar a mensagem a adicionar a conta indicada no 'contas_abertas.json'
 @bot.event
 async def on_message(message):
     if message.author.bot:
@@ -224,7 +229,7 @@ async def on_message(message):
         if 'origem' in conta:
             origem_normalizado  = padrao_origem(conta['origem'])
             if not validar_origem(conta['origem']):
-                await message.reply("❌ Origem inválida. Use apenas 'Lead Manual', 'Repescagem', 'Discador', 'Mensageria', 'Ura', 'BackOffice' ou 'Indicação'.")
+                await message.reply("❌ Origem inválida. Use apenas 'Lead Manual', 'Repescagem', 'Discador', 'Mensageria', 'Ura', 'Repescagem Ura', 'BackOffice' ou 'Indicação'.")
                 return
             conta['origem'] = padronizar_origem(conta['origem'])
 
@@ -254,6 +259,7 @@ async def on_message(message):
             print(f'Chave "cnpj" não encontrada na conta: {conta}')
             await message.reply("❌ A mensagem não contém um CNPJ válido.")
 
+#Se a mensagem da conta indicada for apagada no chat, essa conta será removida do json
 @bot.event
 async def on_message_delete(message):
     if message.channel.id == ID_CANAL_MONITORADO:
