@@ -148,6 +148,10 @@ def padronizar_origem(origem):
     
     elif origem_normalizado == "repescagem ura":
         return "REPESCAGEM URA"
+    
+    elif origem_normalizado == "sms":
+        return "sms"
+    
     else:
 
         return origem
@@ -229,7 +233,7 @@ async def on_message(message):
         if 'origem' in conta:
             origem_normalizado  = padrao_origem(conta['origem'])
             if not validar_origem(conta['origem']):
-                await message.reply("❌ Origem inválida. Use apenas 'Lead Manual', 'Repescagem', 'Discador', 'Mensageria', 'Ura', 'Repescagem Ura', 'BackOffice' ou 'Indicação'.")
+                await message.reply("❌ Origem inválida. Use apenas 'Lead Manual', 'Repescagem', 'Discador', 'Mensageria', 'Ura', 'Repescagem Ura', 'SMS', 'BackOffice' ou 'Indicação'.")
                 return
             conta['origem'] = padronizar_origem(conta['origem'])
 

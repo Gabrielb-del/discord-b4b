@@ -26,13 +26,9 @@ async def enviar_campanha_periodico():
         data_atual = agora.strftime("%d/%m")
 
 
-        mensagem = f"\n**🎈✨ Campanha Estoura Balão – Valendo Prêmios!** ✨🎈\n\n"
-        mensagem += "Conquiste sua chance de estourar um balão e ganhar prêmios incríveis!\n"
-        mensagem += f"🚀 **Você garante 1 balão ao atingir:**\n"
-        mensagem += f"\n`✅ 2 contas aprovadas`\n"
-        mensagem += f"`✅ 1 qualificação com evidência`\n"
-        mensagem += f"`✅ 1 maquininha vendida (Apenas para o time de Cash)`\n\n"
-        mensagem += f" Acumule conquistas, estoure mais balões e aumente suas chances de ganhar **1 Combo Lanche no Companheiro's Burguer**, **Voucher R$100**, **Voucher R$50**, **Saldo livre de R$10 até R$100 no Ifood e muito mais!!👀** \n\n"
+        mensagem = f"\n**📢 Campanhas do Dia!**\n\n"
+        mensagem += "**☕ Café da Tarde com a Liderança:**\n"
+        mensagem += "Premiação para quem atingir o maior **ICM** no período! 🏆\n\n"
 
         canal_prospec = bot.get_channel(CANAL_PROSPEC)
         canal_quali = bot.get_channel(CANAL_QUALI)
