@@ -123,7 +123,7 @@ def padrao_origem(origem):
 
 def validar_origem(origem):
     origem_normalizado = padrao_origem(origem)
-    return origem_normalizado in ["lead manual", "repescagem", "discador", "mensageria", "indicacao", "ura","backoffice", "repescagem ura"]
+    return origem_normalizado in ["lead manual", "repescagem", "discador", "mensageria", "indicacao", "ura","backoffice", "repescagem ura", "sms"]
 
 def padronizar_origem(origem):
     origem_normalizado = padrao_origem(origem)
