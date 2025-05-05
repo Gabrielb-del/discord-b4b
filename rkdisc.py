@@ -7,7 +7,7 @@ import datetime
 TOKEN = "MTMzNzE2NzA3ODA4MzI2ODY0OA.GRpZfN.UEmNy1fWnH1X5GwJXW7Oiy1yyeVFUMrjBWRqes"
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 DATA_FILE = "ranking.json"
-META_DIARIA = 70 
+META_DIARIA = 60 
 CANAL_ID = 1321965052454109194
 CONTAS_ABERTAS_FILE = "contas_abertas.json"  # Arquivo JSON das contas abertas
 
@@ -299,8 +299,7 @@ async def add(ctx, nome: str, quantidade: int):
     salvar_ranking(ranking)
     await ctx.send(f"✅ {quantidade} conta(s) adicionada(s) para {nome}. Agora ele(a) tem {ranking[nome]} conta(s).")
 
-
-
+'''
 @bot.command()
 async def teams(ctx):
     if ctx.channel.id != CANAL_ID:
@@ -384,5 +383,10 @@ async def teams(ctx):
         mensagem += "\n\n⚖️ Os times estão empatados!"
 
     await ctx.send(mensagem)
+'''
 
 bot.run(TOKEN)
+
+
+
+
