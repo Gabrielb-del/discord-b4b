@@ -55,7 +55,11 @@ MAPEAMENTO_USUARIOS = {
     "larissasilva_04782": "Larissa",
     "beatrizsoares.b4b": "Beatriz Soares",
     "victorpereira_b4b": "Victor Hugo",
-    "alexandrescarabelo.b4b": "Alexandre"
+    "alexandrescarabelo.b4b": "Alexandre",
+    "matheusrodrigues.b4b_85869": "Matheus Teixeira",
+    "fabionavarrete.b4b": "Fabio",
+    "emillyfernandes.b4b": "Emilly",
+    "mariarodrigues.b4b": "Maria Cecilia"
 
 
 }
@@ -104,7 +108,11 @@ MAPEAMENTO_REVERSO = {
     "Larissa Vitória Silva Sanches": "Larissa",
     "Beatriz Pádua Soares": "Beatriz Soares",
     "Victor Hugo Santos Pereira": "Victor Hugo",
-    "Alexandre Lopes Scarabelo": "Alexandre"
+    "Alexandre Lopes Scarabelo": "Alexandre",
+    "Fabio Lopes Navarrete": "Fabio",
+    "Matheus Teixeira Rodrigues": "Matheus Teixeira",
+    "Maria Cecilia Ricci Dos Santos Rodrigues": "Maria Cecilia",
+    "Emilly Helena Preissler Fernandes": "Emilly"
 
 
 }
@@ -113,7 +121,7 @@ operadores = [
             "Abigail", "Alyssa", "Giovana Vitória", "João", "Mia",
             "Rita", "Sara", "Thaleco", "Vinícius", "Yasmin", "Yuri", "Gabriela", "Beatriz Duarte",
             "Maria Luisa", "Isaac", "Beatriz Oliveira", "Giovana Martins", "Sofia", 
-            "Mariana", "Tamiris", "Juliana", "Larissa", "Beatriz Soares", "Victor Hugo",
+            "Mariana", "Tamiris", "Juliana", "Larissa", "Beatriz Soares", "Victor Hugo", "Fabio", "Matheus Teixeira", "Maria Cecilia", "Emilly"
         ]
 
 def esta_no_horario():

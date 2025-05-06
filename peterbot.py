@@ -68,7 +68,11 @@ MAPEAMENTO_USUARIOS = {
     "larissasilva_04782": "Larissa Vitória Silva Sanches",
     "beatrizsoares.b4b": "Beatriz Pádua Soares",
     "victorpereira_b4b": "Victor Hugo Santos Pereira",
-    "alexandrescarabelo.b4b": "Alexandre Lopes Scarabelo"
+    "alexandrescarabelo.b4b": "Alexandre Lopes Scarabelo",
+    "matheusrodrigues.b4b_85869": "Matheus Teixeira Rodrigues",
+    "fabionavarrete.b4b": "Fabio Lopes Navarrete",
+    "emillyfernandes.b4b": "Emilly Helena Preissler Fernandes",
+    "mariarodrigues.b4b": "Maria Cecilia Ricci Dos Santos Rodrigues"
 }
 
 def carregar_dados():
