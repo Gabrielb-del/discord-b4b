@@ -118,10 +118,10 @@ MAPEAMENTO_REVERSO = {
 }
 
 operadores = [
-            "Abigail", "Alyssa", "Giovana Vitória", "João", "Mia",
-            "Rita", "Sara", "Thaleco", "Vinícius", "Yasmin", "Yuri", "Gabriela", "Beatriz Duarte",
-            "Maria Luisa", "Isaac", "Beatriz Oliveira", "Giovana Martins", "Sofia", 
-            "Mariana", "Tamiris", "Juliana", "Larissa", "Beatriz Soares", "Victor Hugo", "Fabio", "Matheus Teixeira", "Maria Cecilia", "Emilly"
+            "Abigail", "Giovana Vitória", "João", "Mia",
+            "Rita", "Sara", "Thaleco", "Vinícius", "Yasmin", "Yuri",
+            "Isaac", "Beatriz Oliveira", "Giovana Martins", "Sofia", 
+            "Mariana", "Tamiris", "Juliana", "Larissa", "Beatriz Soares", "Victor Hugo", "Fabio", "Matheus Teixeira", "Maria Cecilia",
         ]
 
 def esta_no_horario():
