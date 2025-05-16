@@ -119,8 +119,8 @@ MAPEAMENTO_REVERSO = {
 
 operadores = [
             "Abigail", "Giovana Vitória", "João", "Mia",
-            "Rita", "Sara", "Thaleco", "Vinícius", "Yasmin", "Yuri",
-            "Isaac", "Beatriz Oliveira", "Giovana Martins", "Sofia", 
+            "Rita", "Thaleco", "Vinícius", "Yasmin", "Yuri",
+            "Isaac", "Giovana Martins", "Sofia", 
             "Mariana", "Tamiris", "Juliana", "Larissa", "Beatriz Soares", "Victor Hugo", "Fabio", "Matheus Teixeira",
         ]
 
