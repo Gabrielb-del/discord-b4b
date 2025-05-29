@@ -60,7 +60,8 @@ MAPEAMENTO_USUARIOS = {
     "fabionavarrete.b4b": "Fabio",
     "emillyfernandes.b4b": "Emilly",
     "mariarodrigues.b4b": "Maria Cecilia",
-    "kayquedomingos.b4b": "Kayque"
+    "kayquedomingos.b4b": "Kayque",
+    "amandasilva.b4b": "Amanda"
 
 
 }
@@ -114,7 +115,8 @@ MAPEAMENTO_REVERSO = {
     "Matheus Teixeira Rodrigues": "Matheus Teixeira",
     "Maria Cecilia Ricci Dos Santos Rodrigues": "Maria Cecilia",
     "Emilly Helena Preissler Fernandes": "Emilly",
-    "Kayque Gabriel Mancini Domingos": "Kayque"
+    "Kayque Gabriel Mancini Domingos": "Kayque",
+    "Amanda Querendo da Silva": "Amanda"
 
 
 }
@@ -124,7 +126,7 @@ operadores = [
             "Rita", "Thaleco", "Vinícius", "Yasmin", "Yuri",
             "Isaac", "Giovana Martins", "Sofia", 
             "Mariana", "Tamiris", "Juliana", "Larissa", "Beatriz Soares", 
-            "Victor Hugo", "Fabio", "Matheus Teixeira", "Kayque"
+            "Fabio", "Matheus Teixeira", "Kayque", "Amanda"
         ]
 
 def esta_no_horario():

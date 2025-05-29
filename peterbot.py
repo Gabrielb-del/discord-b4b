@@ -73,7 +73,8 @@ MAPEAMENTO_USUARIOS = {
     "fabionavarrete.b4b": "Fabio Lopes Navarrete",
     "emillyfernandes.b4b": "Emilly Helena Preissler Fernandes",
     "mariarodrigues.b4b": "Maria Cecilia Ricci Dos Santos Rodrigues",
-    "kayquedomingos.b4b": "Kayque Gabriel Mancini Domingos"
+    "kayquedomingos.b4b": "Kayque Gabriel Mancini Domingos",
+    "amandasilva.b4b": "Amanda Querendo da Silva"
 }
 
 def carregar_dados():
