@@ -180,7 +180,7 @@ async def enviar_ranking_periodico():
     agora = datetime.datetime.now()
 
     # Verifica se é um dia útil (segunda a sexta) e se está dentro do horário de funcionamento
-    if agora.weekday() < 5 and 9 <= agora.hour < 18:
+    if agora.weekday() < 6 and 9 <= agora.hour < 18:
         ranking = contar_contas_por_consultor()
         data_atual = agora.strftime("%d/%m")
 
