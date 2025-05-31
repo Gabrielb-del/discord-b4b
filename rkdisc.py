@@ -128,7 +128,7 @@ operadores = [
             "Rita", "Thaleco", "Vinícius", "Yasmin", "Yuri",
             "Isaac", "Giovana Martins", "Sofia", 
             "Mariana", "Tamiris", "Juliana", "Larissa", 
-            "Fabio", "Matheus Teixeira", "Kayque", "Amanda", "Wesley"
+            "Fabio", "Matheus Teixeira", "Kayque", "Amanda",
         ]
 
 def esta_no_horario():
@@ -182,7 +182,7 @@ async def enviar_ranking_periodico():
     agora = datetime.datetime.now()
 
     # Verifica se é um dia útil (segunda a sexta) e se está dentro do horário de funcionamento
-    if agora.weekday() < 6 and 9 <= agora.hour < 18:
+    if agora.weekday() < 5 and 9 <= agora.hour < 18:
         ranking = contar_contas_por_consultor()
         data_atual = agora.strftime("%d/%m")
 
@@ -246,7 +246,7 @@ async def resetar_ranking():
     agora = datetime.datetime.now()
 
     # Verifica se é um dia útil (segunda a sexta) e se está dentro do horário de funcionamento
-    if agora.weekday() < 6:
+    if agora.weekday() < 5:
         if canal:
             await canal.send("🌙 **Ranking resetado!** Um novo dia começa. Vamos com tudo! 🚀")
 
