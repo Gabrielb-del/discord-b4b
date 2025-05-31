@@ -244,7 +244,7 @@ async def resetar_ranking():
     agora = datetime.datetime.now()
 
     # Verifica se é um dia útil (segunda a sexta) e se está dentro do horário de funcionamento
-    if agora.weekday() < 5:
+    if agora.weekday() < 6:
         if canal:
             await canal.send("🌙 **Ranking resetado!** Um novo dia começa. Vamos com tudo! 🚀")
 
