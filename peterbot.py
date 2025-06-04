@@ -59,6 +59,8 @@ contas_abertas = carregar_dados()
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
+intents.guilds = True
+intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 def normalizar_status(status):
@@ -141,6 +143,7 @@ async def resetar_contas():
 @bot.event
 async def on_ready():
     print(f'Logado como {bot.user}')
+    print(f'Comandos registrados: {[cmd.name for cmd in bot.commands]}')
     resetar_contas.start()
 
 
@@ -248,7 +251,7 @@ async def on_message_delete(message):
                 print(f'Conta removida: {conta}')
                 break
 
-@bot.command()
+@bot.command(name="exportar")
 async def exportar(ctx):
     print(f'Comando "!exportar" recebido no canal {ctx.channel.name} (ID: {ctx.channel.id})')
     if ctx.channel.id == ID_CANAL_MONITORADO:
@@ -270,7 +273,7 @@ async def exportar(ctx):
         await ctx.send("Nenhuma conta aberta registrada até o momento.")
 
 # Comandos para gerenciar operadores
-@bot.command()
+@bot.command(name="adicionar_operador")
 async def adicionar_operador(ctx, usuario_discord: str, primeiro_nome: str, *, nome_completo: str):
     """Adiciona um novo operador
     Exemplo: !adicionar_operador joao.b4b João 'João Silva Santos'"""
@@ -282,7 +285,7 @@ async def adicionar_operador(ctx, usuario_discord: str, primeiro_nome: str, *, n
     salvar_operadores(MAPEAMENTO_USUARIOS)
     await ctx.send(f"✅ Operador adicionado com sucesso!\nUsuário Discord: {usuario_discord}\nNome Completo: {nome_completo}")
 
-@bot.command()
+@bot.command(name="remover_operador")
 async def remover_operador(ctx, usuario_discord: str):
     """Remove um operador
     Exemplo: !remover_operador joao.b4b"""
@@ -297,7 +300,7 @@ async def remover_operador(ctx, usuario_discord: str):
     else:
         await ctx.send(f"❌ Operador {usuario_discord} não encontrado!")
 
-@bot.command()
+@bot.command(name="listar_operadores")
 async def listar_operadores(ctx):
     """Lista todos os operadores cadastrados"""
     if ctx.channel.id != ID_CANAL_COMANDOS:
@@ -313,7 +316,7 @@ async def listar_operadores(ctx):
     
     await ctx.send(mensagem)
 
-@bot.command()
+@bot.command(name="atualizar_operador")
 async def atualizar_operador(ctx, usuario_discord: str, *, novo_nome_completo: str):
     """Atualiza o nome completo de um operador
     Exemplo: !atualizar_operador joao.b4b 'João Silva Santos Junior'"""
