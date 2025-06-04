@@ -17,7 +17,7 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 RESET_HORARIO = datetime.time(hour=0, minute=0)  # Reset à meia-noite
 DATA_FILE = "contatos.json"
-CANAL_QUALIFICACAO_ID = int(os.getenv('CANAL_QUALIFICACAO', '0'))
+CANAL_QUALIFICACAO_ID = 1321967249111781398
 
 QUALIFICADORES = [
     "Nazarine", "Luiz", "Augusto", "Thiago Barbosa", "Ariane", "Alexandre"
