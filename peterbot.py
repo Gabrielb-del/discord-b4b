@@ -8,75 +8,38 @@ import datetime
 from discord.ext import commands, tasks
 from datetime import datetime, time
 import unicodedata
+from dotenv import load_dotenv
 
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
 
+# Obtém o token do arquivo .env
+TOKEN = os.getenv('PETERBOT_TOKEN')
+if not TOKEN:
+    raise ValueError("Token não encontrado no arquivo .env. Por favor, configure a variável PETERBOT_TOKEN")
 
-
-TOKEN = "MTMzODUzOTQxMjY4MTY1ODM3OA.Gd5vJ4.RDHatE6BI5hsyjNPbxLLJGPBNG0jP7lMnsB2AY"
 ID_CANAL_MONITORADO = 1321965052454109194
 ID_CANAL_COMANDOS = 1322216912691662868
 ARQUIVO_JSON = "contas_abertas.json"
+ARQUIVO_OPERADORES = "operadores.json"
 
-# Mapeamento de usuários
-MAPEAMENTO_USUARIOS = {
-    "gabrielb.b4b": "Gabriel Baunilia Silva",
-    "alyssafurtuoso.b4b": "Alyssa Santos Furtuoso",
-    "abigailgenaro.b4b_51008": "Abigail Dias Xavier Genaro",
-    "aghataalves.b4b": "Aghata Alves dos Santos",
-    "annasilva.b4b_72247": "Anna Julya De Paula Dias Da Silva",
-    "arianebortolazzob4b": "Ariane Cristina Almeida Bortolazzo",
-    "eduardameira.b4b": "Eduarda Saraiva Meira",
-    "giovanasilva.b4b": "Giovana Vitória da Silva",
-    "giovanniangelo.b4b": "Giovanni Oliveira Angelo",
-    "joaof.b4b_77771": "João Pedro Furtuoso",
-    "miriamfranzoi.b4b": "Miriam Helena Franzoi",
-    "pedrosilva.b4b_51785": "Pedro Elias Almeida Silva",
-    "ritacarmo.b4b": "Rita de Cassia Bueno do Carmo",
-    "saraescobar.b4b_62845": "Sara Gabriely Escobar",
-    "thalessebastiaob4b": "Thales Njea Ferreira Sebastião",
-    "viniciusilva.b4b": "Vinicius Araujo Silva",
-    "yasminsantos.b4b_53785": "Yasmin Leticia da Silva Santos",
-    "yurisales.b4b": "Yuri Costa Cataia de Sales",
-    "beatrizduarte.b4b": "Beatriz Duarte Reis",
-    "gabrielagigo.b4b_30518": "Gabriela Gigo de Paula",
-    "maluribeiro.b4b": "Maria Luisa Ribeiro da Silva",
-    "carolinamattoos.b4b_04846": "Carolina de Mattos",
-    "giovanamartins.b4b": "Giovana Martins da Cruz Carvalho",
-    "isaaccampos.b4b": "Isaac Miguel da Silva Campos",
-    "sofiavieira.b4b_52711": "Sofia Helena Vieira Domingues",
-    "beatrizoliveira.b4b_00144": "Beatriz Reis de Oliveira",
-    "christyanalves.b4b_69243":"Christyan Picoloto Alves",
-    "emillyforner.b4b": "Emilly Dos Santos Forner",
-    "matheusaugusto.b4b_45858": "Matheus Augusto Magoga Cabete",
-    "lucaspais.b4b" : "Lucas Henrique Vieira Pais",
-    "thiagomelo.b4b" : "Thiago Dos Santos Melo",
-    "aghataalves.b4b": "Aghata Alves dos Santos",
-    "juliovilchez.b4b_37346": "Julio Gonçalves Zarate Vilchez",
-    "augustobueno.b4b": "Augusto Bueno de Almeida",
-    "guilermenazarine.b4b": "Guilherme Barboza Nazarine",
-    "luizleite.b4b_57110": "Luiz Augusto Bucharelli da Graça Leite",
-    "thiagobarbosa.b4b_38105": "Thiago da Silva Barbosa",
-    "thiagovieira.b4b": "Thiago Gabriel Vieira",
-    "murilomattos.b4b_83994": "Murilo Miguel de Mattos Ozorio",
-    "andreybizao.b4b": "Andrey de Souza Batista Bizão",
-    "murilopires_b4b": "Murilo Ramalho Pires",
-    "marianabarboza.b4b": "Mariana Gabriela Ferreira Barboza",
-    "hellenanuncicao.b4b": "Hellen Geovana Silva Anunciação",
-    "tamirismarteline.b4b": "Tamiris Mariany Marteline",
-    "biancasarto.b4b_49906": "Bianca Sarto dos Santos",
-    "julianasilva.b4b": "Juliana Cristina da Silva Reis",
-    "larissasilva_04782": "Larissa Vitória Silva Sanches",
-    "beatrizsoares.b4b": "Beatriz Pádua Soares",
-    "victorpereira_b4b": "Victor Hugo Santos Pereira",
-    "alexandrescarabelo.b4b": "Alexandre Lopes Scarabelo",
-    "matheusrodrigues.b4b_85869": "Matheus Teixeira Rodrigues",
-    "fabionavarrete.b4b": "Fabio Lopes Navarrete",
-    "emillyfernandes.b4b": "Emilly Helena Preissler Fernandes",
-    "mariarodrigues.b4b": "Maria Cecilia Ricci Dos Santos Rodrigues",
-    "kayquedomingos.b4b": "Kayque Gabriel Mancini Domingos",
-    "amandasilva.b4b": "Amanda Querendo da Silva",
-    "wesleyb4b": "Wesley Valentin Faian Rodrigues"
-}
+# Função para carregar operadores
+def carregar_operadores():
+    if os.path.exists(ARQUIVO_OPERADORES):
+        with open(ARQUIVO_OPERADORES, "r", encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+# Função para salvar operadores
+def salvar_operadores(operadores):
+    with open(ARQUIVO_OPERADORES, "w", encoding="utf-8") as f:
+        json.dump(operadores, f, indent=4, ensure_ascii=False)
+
+# Carregar operadores ao iniciar
+MAPEAMENTO_USUARIOS = carregar_operadores()
 
 def carregar_dados():
     if os.path.exists(ARQUIVO_JSON):
@@ -288,6 +251,8 @@ async def on_message_delete(message):
 @bot.command()
 async def exportar(ctx):
     print(f'Comando "!exportar" recebido no canal {ctx.channel.name} (ID: {ctx.channel.id})')
+    if message.channel.id == ID_CANAL_MONITORADO:
+        return
 
     if contas_abertas:
         for conta in contas_abertas:
@@ -304,5 +269,64 @@ async def exportar(ctx):
         await ctx.send("Aqui está o arquivo de contas abertas:", file=discord.File(arquivo_excel))
     else:
         await ctx.send("Nenhuma conta aberta registrada até o momento.")
+
+# Comandos para gerenciar operadores
+@bot.command()
+async def adicionar_operador(ctx, usuario_discord: str, primeiro_nome: str, *, nome_completo: str):
+    """Adiciona um novo operador
+    Exemplo: !adicionar_operador joao.b4b João 'João Silva Santos'"""
+    if ctx.channel.id != ID_CANAL_COMANDOS:
+        return
+        
+    global MAPEAMENTO_USUARIOS
+    MAPEAMENTO_USUARIOS[usuario_discord] = nome_completo
+    salvar_operadores(MAPEAMENTO_USUARIOS)
+    await ctx.send(f"✅ Operador adicionado com sucesso!\nUsuário Discord: {usuario_discord}\nNome Completo: {nome_completo}")
+
+@bot.command()
+async def remover_operador(ctx, usuario_discord: str):
+    """Remove um operador
+    Exemplo: !remover_operador joao.b4b"""
+    if ctx.channel.id != ID_CANAL_COMANDOS:
+        return
+        
+    global MAPEAMENTO_USUARIOS
+    if usuario_discord in MAPEAMENTO_USUARIOS:
+        del MAPEAMENTO_USUARIOS[usuario_discord]
+        salvar_operadores(MAPEAMENTO_USUARIOS)
+        await ctx.send(f"✅ Operador {usuario_discord} removido com sucesso!")
+    else:
+        await ctx.send(f"❌ Operador {usuario_discord} não encontrado!")
+
+@bot.command()
+async def listar_operadores(ctx):
+    """Lista todos os operadores cadastrados"""
+    if ctx.channel.id != ID_CANAL_COMANDOS:
+        return
+        
+    if not MAPEAMENTO_USUARIOS:
+        await ctx.send("Nenhum operador cadastrado!")
+        return
+        
+    mensagem = "📋 **Lista de Operadores:**\n\n"
+    for usuario, nome in MAPEAMENTO_USUARIOS.items():
+        mensagem += f"👤 **{usuario}** - {nome}\n"
+    
+    await ctx.send(mensagem)
+
+@bot.command()
+async def atualizar_operador(ctx, usuario_discord: str, *, novo_nome_completo: str):
+    """Atualiza o nome completo de um operador
+    Exemplo: !atualizar_operador joao.b4b 'João Silva Santos Junior'"""
+    if ctx.channel.id != ID_CANAL_COMANDOS:
+        return
+        
+    global MAPEAMENTO_USUARIOS
+    if usuario_discord in MAPEAMENTO_USUARIOS:
+        MAPEAMENTO_USUARIOS[usuario_discord] = novo_nome_completo
+        salvar_operadores(MAPEAMENTO_USUARIOS)
+        await ctx.send(f"✅ Nome do operador {usuario_discord} atualizado para: {novo_nome_completo}")
+    else:
+        await ctx.send(f"❌ Operador {usuario_discord} não encontrado!")
 
 bot.run(TOKEN)

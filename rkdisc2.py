@@ -3,12 +3,21 @@ from discord.ext import commands, tasks
 import json
 import asyncio
 import datetime
+import os
+from dotenv import load_dotenv
 
-TOKEN = "MTMzNzE2NzA3ODA4MzI2ODY0OA.GX7hzf.QfrF3TVKrR4lwbWRUKttIG64V8YNQ_Jn8iEJn8"
+# Carrega as variáveis de ambiente
+load_dotenv()
+
+# Obtém o token do arquivo .env
+TOKEN = os.getenv('RKDISC2_TOKEN')
+if not TOKEN:
+    raise ValueError("Token não encontrado no arquivo .env. Por favor, configure a variável RKDISC2_TOKEN")
+
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 DATA_FILE = "ranking.json"
-META_DIARIA = 30
-CANAL_ID = 1321965052454109194
+META_DIARIA = int(os.getenv('META_DIARIA', '30'))
+CANAL_ID = int(os.getenv('CANAL_PROSPECAO', '0'))
 CONTAS_ABERTAS_FILE = "contas_abertas.json"  # Arquivo JSON das contas abertas
 
 MAPEAMENTO_USUARIOS = {

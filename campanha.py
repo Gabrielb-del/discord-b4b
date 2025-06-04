@@ -3,12 +3,23 @@ from discord.ext import commands, tasks
 import json
 import asyncio
 import datetime
+import os
+from dotenv import load_dotenv
 
-TOKEN = "MTMzNzE2NzA3ODA4MzI2ODY0OA.GRpZfN.UEmNy1fWnH1X5GwJXW7Oiy1yyeVFUMrjBWRqes"
+# Carrega as variáveis de ambiente
+load_dotenv()
+
+# Obtém o token do arquivo .env
+TOKEN = os.getenv('CAMPANHA_TOKEN')
+if not TOKEN:
+    raise ValueError("Token não encontrado no arquivo .env. Por favor, configure a variável CAMPANHA_TOKEN")
+
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
-CANAL_PROSPEC = 1321965052454109194
-CANAL_QUALI = 1321967249111781398
-CANAL_CASH = 1321971534348423303
+
+# Carrega IDs dos canais do arquivo .env
+CANAL_PROSPEC = int(os.getenv('CANAL_PROSPECAO', '0'))
+CANAL_QUALI = int(os.getenv('CANAL_QUALIFICACAO', '0'))
+CANAL_CASH = int(os.getenv('CANAL_CASH', '0'))
 
 def esta_no_horario():
     agora = datetime.datetime.now()

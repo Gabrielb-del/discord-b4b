@@ -2,13 +2,22 @@ import discord
 from discord.ext import commands, tasks
 import json
 import datetime
+import os
+from dotenv import load_dotenv
 
-TOKEN = "MTMzODUzOTQxMjY4MTY1ODM3OA.Gd5vJ4.RDHatE6BI5hsyjNPbxLLJGPBNG0jP7lMnsB2AY"
+# Carrega as variáveis de ambiente
+load_dotenv()
+
+# Obtém o token do arquivo .env
+TOKEN = os.getenv('RKQUALI_TOKEN')
+if not TOKEN:
+    raise ValueError("Token não encontrado no arquivo .env. Por favor, configure a variável RKQUALI_TOKEN")
+
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 RESET_HORARIO = datetime.time(hour=0, minute=0)  # Reset à meia-noite
 DATA_FILE = "contatos.json"
-CANAL_QUALIFICACAO_ID = 1321967249111781398 
+CANAL_QUALIFICACAO_ID = int(os.getenv('CANAL_QUALIFICACAO', '0'))
 
 QUALIFICADORES = [
     "Nazarine", "Luiz", "Augusto", "Thiago Barbosa", "Ariane", "Alexandre"

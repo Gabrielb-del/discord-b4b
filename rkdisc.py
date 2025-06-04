@@ -3,133 +3,93 @@ from discord.ext import commands, tasks
 import json
 import asyncio
 import datetime
+import os
+from collections import defaultdict
+from dotenv import load_dotenv
 
-TOKEN = "MTMzNzE2NzA3ODA4MzI2ODY0OA.GRpZfN.UEmNy1fWnH1X5GwJXW7Oiy1yyeVFUMrjBWRqes"
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
+
+# Obtém o token do arquivo .env
+TOKEN = os.getenv('RKDISC_TOKEN')
+if not TOKEN:
+    raise ValueError("Token não encontrado no arquivo .env. Por favor, configure a variável RKDISC_TOKEN")
+
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 DATA_FILE = "ranking.json"
 META_DIARIA = 60 
 CANAL_ID = 1321965052454109194
-CONTAS_ABERTAS_FILE = "contas_abertas.json"  # Arquivo JSON das contas abertas
+CONTAS_ABERTAS_FILE = "contas_abertas.json"
+ARQUIVO_OPERADORES = "operadores.json"  # Arquivo compartilhado com o peterbot.py
 
-# Mapeamento de usuários (nome de usuário do Discord -> nome no ranking)
-MAPEAMENTO_USUARIOS = {
-    "gabrielb.b4b": "Baunilia",
-    "alyssafurtuoso.b4b": "Alyssa",
-    "abigailgenaro.b4b_51008": "Abigail",
-    "aghataalves.b4b": "Ághata",
-    "annasilva.b4b_72247": "Anna Julya",
-    "arianebortolazzob4b": "Ariane",
-    "eduardameira.b4b": "Eduarda",
-    "giovanasilva.b4b": "Giovana Vitória",
-    "giovanniangelo.b4b": "Giovanni",
-    "joaof.b4b_77771": "João",
-    "miriamfranzoi.b4b": "Mia",
-    "ritacarmo.b4b": "Rita",
-    "saraescobar.b4b_62845": "Sara",
-    "thalessebastiaob4b": "Thaleco",
-    "viniciusilva.b4b": "Vinícius",
-    "yasminsantos.b4b_53785": "Yasmin",
-    "yurisales.b4b": "Yuri",
-    "beatrizduarte.b4b": "Beatriz Duarte",
-    "gabrielagigo.b4b_30518": "Gabriela",
-    "maluribeiro.b4b": "Maria Luisa",
-    "carolinamattos.b4b": "Carolina",
-    "giovanamartins.b4b": "Giovana Martins",
-    "isaaccampos.b4b": "Isaac",
-    "liviagomes.b4b": "Livia",
-    "sofiavieira.b4b_52711": "Sofia",
-    "beatrizoliveira.b4b_00144" : "Beatriz Oliveira",
-    "christyanalves.b4b_69243":"Christyan",
-    "emillyforner.b4b": "Emilly",
-    "matheusaugusto.b4b_45858": "Matheus",
-    "lucaspais.b4b": "Lucas",
-    "thiagomelo.b4b": "Thiago",
-    "juliovilchez.b4b_37346": "Julião",
-    "aghataalves.b4b": "Aghata",
-    "murilopires_b4b": "Murilo Pires",
-    "marianabarboza.b4b": "Mariana",
-    "murilomattos.b4b_83994": "Murilo Mattos",
-    "tamirismarteline.b4b": "Tamiris",
-    "biancasarto.b4b_49906": "Bianca",
-    "julianasilva.b4b": "Juliana",
-    "larissasilva_04782": "Larissa",
-    "beatrizsoares.b4b": "Beatriz Soares",
-    "victorpereira_b4b": "Victor Hugo",
-    "alexandrescarabelo.b4b": "Alexandre",
-    "matheusrodrigues.b4b_85869": "Matheus Teixeira",
-    "fabionavarrete.b4b": "Fabio",
-    "emillyfernandes.b4b": "Emilly",
-    "mariarodrigues.b4b": "Maria Cecilia",
-    "kayquedomingos.b4b": "Kayque",
-    "amandasilva.b4b": "Amanda",
-    "wesleyb4b": "Wesley"
+# Função para carregar operadores do arquivo JSON
+def carregar_operadores():
+    if os.path.exists(ARQUIVO_OPERADORES):
+        with open(ARQUIVO_OPERADORES, "r", encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    return {}
 
+# Função para salvar operadores no arquivo JSON
+def salvar_operadores(operadores):
+    with open(ARQUIVO_OPERADORES, "w", encoding="utf-8") as f:
+        json.dump(operadores, f, indent=4, ensure_ascii=False)
 
-}
+# Carregar operadores ao iniciar
+MAPEAMENTO_USUARIOS = carregar_operadores()
 
-# Mapeamento reverso (nome completo -> nome no ranking)
-MAPEAMENTO_REVERSO = {
-    "Gabriel Baunilia Silva": "Baunilia",
-    "Alyssa Santos Furtuoso": "Alyssa",
-    "Abigail Dias Xavier Genaro": "Abigail",
-    "Aghata Alves dos Santos": "Ághata",
-    "Anna Julya De Paula Dias Da Silva": "Anna Julya",
-    "Ariane Cristina Almeida Bortolazzo": "Ariane",
-    "Eduarda Saraiva Meira": "Eduarda",
-    "Giovana Vitória da Silva": "Giovana Vitória",
-    "Giovanni Oliveira Angelo": "Giovanni",
-    "João Pedro Furtuoso": "João",
-    "Miriam Helena Franzoi": "Mia",
-    "Rita de Cassia Bueno do Carmo": "Rita",
-    "Sara Gabriely Escobar": "Sara",
-    "Thales Njea Ferreira Sebastião": "Thaleco",
-    "Vinicius Araujo Silva": "Vinícius",
-    "Yasmin Leticia da Silva Santos": "Yasmin",
-    "Yuri Costa Cataia de Sales": "Yuri",
-    "Beatriz Duarte Reis": "Beatriz Duarte",
-    "Gabriela Gigo de Paula": "Gabriela",
-    "Maria Luisa Ribeiro da Silva": "Maria Luisa",
-    "Carolina de Mattos": "Carolina",
-    "Giovana Martins da Cruz Carvalho": "Giovana Martins",
-    "Isaac Miguel da Silva Campos": "Isaac",
-    "Livia Kai Lani Gomes de Oliveira": "Livia",
-    "Sofia Helena Vieira Domingues": "Sofia",
-    "Beatriz Reis de Oliveira": "Beatriz Oliveira",
-    "Christyan Picoloto Alves": "Christyan",
-    "Matheus Augusto Magoga Cabete": "Matheus",
-    "Emilly Dos Santos Forner": "Emilly",
-    "Lucas Henrique Vieira Pais": "Lucas",
-    "Thiago Dos Santos Melo": "Thiago",
-    "Julio Gonçalves Zarate Vilchez": "Julião",
-    "Aghata Alves dos Santos": "Aghata",
-    "Mariana Gabriela Ferreira Barboza": "Mariana",
-    "Murilo Ramalho Pires": "Murilo Pires",
-    "Murilo Miguel de Mattos Ozorio": "Murilo Mattos",
-    "Tamiris Mariany Marteline": "Tamiris",
-    "Bianca Sarto dos Santos": "Bianca",
-    "Juliana Cristina da Silva Reis": "Juliana",
-    "Larissa Vitória Silva Sanches": "Larissa",
-    "Beatriz Pádua Soares": "Beatriz Soares",
-    "Victor Hugo Santos Pereira": "Victor Hugo",
-    "Alexandre Lopes Scarabelo": "Alexandre",
-    "Fabio Lopes Navarrete": "Fabio",
-    "Matheus Teixeira Rodrigues": "Matheus Teixeira",
-    "Maria Cecilia Ricci Dos Santos Rodrigues": "Maria Cecilia",
-    "Emilly Helena Preissler Fernandes": "Emilly",
-    "Kayque Gabriel Mancini Domingos": "Kayque",
-    "Amanda Querendo da Silva": "Amanda",
-    "Wesley Valentin Faian Rodrigues": "Wesley"
+# Lista de operadores ativos (será atualizada dinamicamente)
+operadores = []
 
+def atualizar_lista_operadores():
+    global operadores
+    # Obtém todos os nomes completos dos operadores
+    nomes_completos = list(MAPEAMENTO_USUARIOS.values())
+    
+    # Cria um dicionário para agrupar operadores com mesmo primeiro nome
+    nomes_agrupados = defaultdict(list)
+    for nome in nomes_completos:
+        partes = nome.split()
+        primeiro_nome = partes[0]
+        nomes_agrupados[primeiro_nome].append(nome)
+    
+    # Lista final de nomes para o ranking
+    nomes_ranking = []
+    for primeiro_nome, lista_nomes in nomes_agrupados.items():
+        if len(lista_nomes) == 1:
+            # Se só tem um operador com esse primeiro nome, usa só o primeiro nome
+            nomes_ranking.append(primeiro_nome)
+        else:
+            # Se tem mais de um, usa primeiro nome + primeiro sobrenome para cada um
+            for nome_completo in lista_nomes:
+                partes = nome_completo.split()
+                if len(partes) > 1:
+                    nomes_ranking.append(f"{partes[0]} {partes[1]}")
+                else:
+                    nomes_ranking.append(partes[0])
+    
+    operadores = sorted(nomes_ranking)
 
-}
-
-operadores = [
-            "Abigail", "Giovana Vitória", "João", "Mia",
-            "Rita", "Thaleco", "Vinícius", "Yasmin", "Yuri",
-            "Isaac", "Giovana Martins", "Sofia", 
-            "Mariana", "Tamiris", "Juliana", "Larissa", 
-            "Fabio", "Matheus Teixeira", "Kayque", "Amanda",
-        ]
+def obter_nome_ranking(nome_completo):
+    """Retorna o nome que deve aparecer no ranking para um determinado operador"""
+    if not nome_completo:
+        return nome_completo
+        
+    partes = nome_completo.split()
+    primeiro_nome = partes[0]
+    
+    # Conta quantos operadores têm o mesmo primeiro nome
+    mesmo_primeiro_nome = sum(1 for nome in MAPEAMENTO_USUARIOS.values() 
+                            if nome.split()[0] == primeiro_nome)
+    
+    if mesmo_primeiro_nome > 1:
+        # Se tem mais de um operador com o mesmo primeiro nome, usa nome + sobrenome
+        return f"{partes[0]} {partes[1]}" if len(partes) > 1 else partes[0]
+    else:
+        # Se é único, usa só o primeiro nome
+        return primeiro_nome
 
 def esta_no_horario():
     agora = datetime.datetime.now()
@@ -166,9 +126,9 @@ def contar_contas_por_consultor():
 
         consultor_completo = conta.get("consultor")
         if consultor_completo:
-            # Converte o nome completo para o nome do ranking usando o mapeamento reverso
-            consultor = MAPEAMENTO_REVERSO.get(consultor_completo, consultor_completo)
-            ranking[consultor] = ranking.get(consultor, 0) + 1
+            # Usa a função de obter nome para o ranking
+            nome_ranking = obter_nome_ranking(consultor_completo)
+            ranking[nome_ranking] = ranking.get(nome_ranking, 0) + 1
 
     return ranking
 
@@ -252,7 +212,8 @@ async def resetar_ranking():
 
 @bot.event
 async def on_ready():
-    print(f" {bot.user.name} está online!")
+    print(f'Bot está online como {bot.user.name}')
+    atualizar_lista_operadores()  # Atualiza a lista de operadores ao iniciar
     enviar_ranking_periodico.start()
     resetar_ranking.start()
 
@@ -313,92 +274,6 @@ async def add(ctx, nome: str, quantidade: int):
 
     salvar_ranking(ranking)
     await ctx.send(f"✅ {quantidade} conta(s) adicionada(s) para {nome}. Agora ele(a) tem {ranking[nome]} conta(s).")
-
-'''
-@bot.command()
-async def teams(ctx):
-    if ctx.channel.id != CANAL_ID:
-        await ctx.send("❌ Este comando só pode ser usado no canal de prospecção.")
-        return
-
-    # Cargos dos times
-    CARGO_AGUIA = "Team Águia"  # Substitua pelo nome exato do cargo
-    CARGO_BLACK_PANTHER = "Team Black Panther"  # Substitua pelo nome exato do cargo
-
-    # Coletar membros
-    time_aguia = []
-    time_bp = []
-    
-    for member in ctx.guild.members:
-        roles = [role.name for role in member.roles]
-        nome_rank = MAPEAMENTO_USUARIOS.get(member.name.lower())
-        
-        if nome_rank and nome_rank in operadores:
-            if CARGO_AGUIA in roles:
-                time_aguia.append(nome_rank)
-            elif CARGO_BLACK_PANTHER in roles:
-                time_bp.append(nome_rank)
-
-    ranking = contar_contas_por_consultor()
-    data = datetime.datetime.now().strftime("%d/%m %H:%M")
-    
-    # Calcular totais
-    total_aguia = sum(ranking.get(op, 0) for op in time_aguia)
-    total_bp = sum(ranking.get(op, 0) for op in time_bp)
-
-    # Ordenar por contas
-    time_aguia.sort(key=lambda x: (-ranking.get(x, 0), x))
-    time_bp.sort(key=lambda x: (-ranking.get(x, 0), x))
-
-    # Preparar tabela
-    header = f"**🏆 RANKING DOS TIMES - {data}**\n\n"
-    header += f"` TIME ÁGUIA 🦅 (Total: {total_aguia}) `\t\t` TIME BLACK PANTHER 🐾 (Total: {total_bp}) `\n\n"
-    
-    # Calcular larguras
-    max_width_aguia = max(len(op) for op in time_aguia) if time_aguia else 15
-    max_width_bp = max(len(op) for op in time_bp) if time_bp else 15
-    max_width_aguia = max(max_width_aguia, 15)  # Mínimo de 15 caracteres
-    max_width_bp = max(max_width_bp, 15)
-
-    # Construir linhas
-    lines = []
-    max_lines = max(len(time_aguia), len(time_bp))
-    
-    for i in range(max_lines):
-        linha = "`"
-        # Coluna Águia
-        if i < len(time_aguia):
-            op = time_aguia[i]
-            linha += f" {op.ljust(max_width_aguia)}: {str(ranking.get(op, 0)).rjust(2)} "
-        else:
-            linha += " ".ljust(max_width_aguia + 5)
-        
-        linha += " `\t\t\t\t\t` "
-        
-        # Coluna BP
-        if i < len(time_bp):
-            op = time_bp[i]
-            linha += f" {op.ljust(max_width_bp)}: {str(ranking.get(op, 0)).rjust(2)} "
-        else:
-            linha += " ".ljust(max_width_bp + 5)
-        
-        linha += " `"
-        lines.append(linha)
-
-    # Mensagem final
-    mensagem = header + "\n".join(lines)
-    
-    # Rodapé
-    diferenca = abs(total_aguia - total_bp)
-    if total_aguia > total_bp:
-        mensagem += f"\n\n🦅 O Time Águia está liderando por {diferenca} contas!"
-    elif total_bp > total_aguia:
-        mensagem += f"\n\n🐾 O Time Black Panther está liderando por {diferenca} contas!"
-    else:
-        mensagem += "\n\n⚖️ Os times estão empatados!"
-
-    await ctx.send(mensagem)
-'''
 
 bot.run(TOKEN)
 

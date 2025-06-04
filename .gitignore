@@ -1,0 +1,27 @@
+# Ambiente virtual
+venv/
+env/
+.env
+
+# Arquivos de cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos de dados
+*.json
+!.env.example
+!operadores.example.json
+
+# Logs
+*.log
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# IDEs e editores
+.vscode/
+.idea/
+*.swp
+*.swo 
