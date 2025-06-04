@@ -251,14 +251,13 @@ async def on_message_delete(message):
 @bot.command()
 async def exportar(ctx):
     print(f'Comando "!exportar" recebido no canal {ctx.channel.name} (ID: {ctx.channel.id})')
-    if message.channel.id == ID_CANAL_MONITORADO:
+    if ctx.channel.id == ID_CANAL_MONITORADO:
         return
 
     if contas_abertas:
         for conta in contas_abertas:
             if "data" not in conta:
                 conta["data"] = datetime.now().strftime("%d/%m/%Y")
-
 
         colunas_desejadas = ["data", "hora_envio", "cnpj", "empresa", "consultor", "origem", "status"]
         df = pd.DataFrame(contas_abertas)
