@@ -220,7 +220,7 @@ async def on_message(message):
             else:
                 campos_faltantes.append(chave)
                 print(f'Campo "{chave}" não encontrado na mensagem.')
-        conta["hora_envio"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        conta["hora_envio"] = datetime.now().strftime("%H:00")
 
 
         if len(campos_faltantes) > 0:
