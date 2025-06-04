@@ -220,6 +220,8 @@ async def on_message(message):
             else:
                 campos_faltantes.append(chave)
                 print(f'Campo "{chave}" não encontrado na mensagem.')
+        conta["hora_envio"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
 
         if len(campos_faltantes) > 0:
             await message.reply(f"❌ Faltam os seguintes campos: {', '.join(campos_faltantes)}. Por favor, envie novamente.")
@@ -292,7 +294,8 @@ async def exportar(ctx):
             if "data" not in conta:
                 conta["data"] = datetime.now().strftime("%d/%m/%Y")
 
-        colunas_desejadas = ["data", "cnpj", "empresa", "consultor", "origem", "status"]
+
+        colunas_desejadas = ["data", "hora_envio", "cnpj", "empresa", "consultor", "origem", "status"]
         df = pd.DataFrame(contas_abertas)
         df = df[[col for col in colunas_desejadas if col in df.columns]].fillna("")
         arquivo_excel = f"CONTAS_ABERTAS_{datetime.now().strftime('%d%m%Y_%H%M%S')}.xlsx"
