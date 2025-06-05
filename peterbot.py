@@ -395,7 +395,8 @@ async def exportar(ctx):
 
 @bot.command(name="expquali")
 async def expquali(ctx):
-    if ctx.channel.id == ID_CANAL_QUALIFICACAO:
+    print(f'Comando "!expquali" recebido no canal {ctx.channel.name} (ID: {ctx.channel.id})')
+    if ctx.channel.id == ID_CANAL_MONITORADO:
         return
 
     if contatos_qualificados:
@@ -406,9 +407,12 @@ async def expquali(ctx):
         arquivo_excel = f"CONTATOS_QUALIFICADOS_{datetime.now().strftime('%d%m%Y_%H%M%S')}.xlsx"
         df.to_excel(arquivo_excel, index=False)
 
-        await ctx.send("Aqui está o arquivo de contatos qualificados:", file=discord.File(arquivo_excel))
+        await ctx.send("📊 Aqui está o arquivo de contatos qualificados:", file=discord.File(arquivo_excel))
+        
+        # Remover o arquivo após enviar
+        os.remove(arquivo_excel)
     else:
-        await ctx.send("Nenhum contato qualificado registrado até o momento.")
+        await ctx.send("❌ Nenhum contato qualificado registrado até o momento.")
 
 # Comandos para gerenciar operadores
 @bot.command(name="adicionar_operador")
