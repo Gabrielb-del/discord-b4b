@@ -393,8 +393,8 @@ async def exportar(ctx):
     else:
         await ctx.send("Nenhuma conta aberta registrada até o momento.")
 
-@bot.command(name="exportar_qualificados")
-async def exportar_qualificados(ctx):
+@bot.command(name="expquali")
+async def expquali(ctx):
     if ctx.channel.id == ID_CANAL_QUALIFICACAO:
         return
 
