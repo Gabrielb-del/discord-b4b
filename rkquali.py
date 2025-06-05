@@ -163,20 +163,34 @@ async def contatos(ctx):
 
 @tasks.loop(seconds=10)  # Verifica a cada 10 segundos
 async def monitorar_operadores():
-    if arquivo_foi_modificado():
-        global MAPEAMENTO_USUARIOS_QUALI
-        MAPEAMENTO_USUARIOS_QUALI = carregar_operadores_quali()
-        atualizar_lista_operadores()
-        canal = bot.get_channel(CANAL_QUALIFICACAO_ID)
-        if canal:
-            await canal.send("📝 Lista de operadores atualizada automaticamente!")
-            await contatos(bot.get_context(await canal.fetch_message(canal.last_message_id)))
+    global MAPEAMENTO_USUARIOS_QUALI, ultima_modificacao
+    try:
+        if os.path.exists(ARQUIVO_OPERADORES_QUALI):
+            modificacao_atual = os.path.getmtime(ARQUIVO_OPERADORES_QUALI)
+            if modificacao_atual != ultima_modificacao:
+                print(f"Detectada modificação no arquivo de operadores de qualificação")
+                MAPEAMENTO_USUARIOS_QUALI = carregar_operadores_quali()
+                atualizar_lista_operadores()
+                ultima_modificacao = modificacao_atual
+                
+                canal = bot.get_channel(CANAL_QUALIFICACAO_ID)
+                if canal:
+                    await canal.send("📝 Lista de operadores atualizada automaticamente!")
+                    ctx = await bot.get_context(await canal.fetch_message(canal.last_message_id))
+                    await contatos(ctx)
+    except Exception as e:
+        print(f"Erro ao monitorar operadores: {e}")
 
 @bot.event
 async def on_ready():
     print(f" {bot.user.name} está online!")
     global ultima_modificacao
-    ultima_modificacao = os.path.getmtime(ARQUIVO_OPERADORES_QUALI)
+    try:
+        ultima_modificacao = os.path.getmtime(ARQUIVO_OPERADORES_QUALI) if os.path.exists(ARQUIVO_OPERADORES_QUALI) else 0
+    except Exception as e:
+        print(f"Erro ao obter última modificação do arquivo: {e}")
+        ultima_modificacao = 0
+    
     atualizar_lista_operadores()  # Atualiza a lista de operadores ao iniciar
     monitorar_operadores.start()  # Inicia o monitoramento do arquivo
     enviar_contatos_periodicos.start()

@@ -20,7 +20,7 @@ if not TOKEN:
 
 ID_CANAL_MONITORADO = 1321965052454109194
 ID_CANAL_COMANDOS = 1322216912691662868
-ID_CANAL_QUALIFICACAO = 1322216912691662868  # Substitua pelo ID correto do canal de qualificação
+ID_CANAL_QUALIFICACAO = 1321967249111781398  # Substitua pelo ID correto do canal de qualificação
 ARQUIVO_JSON = "contas_abertas.json"
 ARQUIVO_OPERADORES = "operadores.json"
 ARQUIVO_QUALIFICADOS = "contatos_qualificados.json"
