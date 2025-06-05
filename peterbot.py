@@ -400,9 +400,20 @@ async def expquali(ctx):
         return
 
     if contatos_qualificados:
+        # Criar uma cópia dos contatos para não modificar os originais
+        contatos_para_excel = []
+        for contato in contatos_qualificados:
+            contato_modificado = contato.copy()
+            # Procurar o nome completo do operador
+            nome_usuario = next((usuario for usuario, nome in MAPEAMENTO_USUARIOS_QUALI.items() 
+                              if nome == contato['consultor']), None)
+            if nome_usuario:
+                contato_modificado['consultor'] = MAPEAMENTO_USUARIOS_QUALI[nome_usuario]
+            contatos_para_excel.append(contato_modificado)
+
         colunas_desejadas = ["data_registro", "hora_envio", "cnpj", "empresa", "nome", "telefone", "email", 
                             "faturamento", "data_conta", "consultor", "tipo_qualificacao", "observacoes"]
-        df = pd.DataFrame(contatos_qualificados)
+        df = pd.DataFrame(contatos_para_excel)
         df = df[[col for col in colunas_desejadas if col in df.columns]].fillna("")
         arquivo_excel = f"CONTATOS_QUALIFICADOS_{datetime.now().strftime('%d%m%Y_%H%M%S')}.xlsx"
         df.to_excel(arquivo_excel, index=False)
