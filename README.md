@@ -1,6 +1,6 @@
 # 🤖 Discord B4B - Sistema de Rankeamento
 
-> Sistema automatizado para monitoramento de contas abertas e rankeamento de desempenho
+> Sistema automatizado para monitoramento de contas abertas, qualificação e rankeamento de desempenho
 
 ![Python](https://img.shields.io/badge/Python-3.9+-blue?logo=python)
 ![Discord.py](https://img.shields.io/badge/Discord.py-2.0+-blue?logo=discord)
@@ -10,10 +10,11 @@
 - **Ranking automático** (atualização a cada 30 minutos)
 - **Controle de metas diárias**
 - **Comandos administrativos** via Discord
-- **Exportação para Excel** (!exportar)
+- **Exportação para Excel**
 - **Gestão de operadores** via comandos
 - **Monitoramento de qualificação**
 - **Sistema de campanhas**
+- **Atualização automática de operadores**
 
 ## ⚙️ Configuração
 
@@ -49,39 +50,87 @@ pip install -r requirements.txt
 
 5. Configure os operadores:
    - Copie o arquivo `operadores.example.json` para `operadores.json`
-   - Adicione os operadores no formato especificado
+   - Copie o arquivo `operadores_quali.example.json` para `operadores_quali.json`
+   - Adicione os operadores usando os comandos apropriados
 
-## 🤖 Bots Disponíveis
+## 🤖 Bots e Comandos
 
 ### PeterBot (`peterbot.py`)
-Bot principal para gerenciamento de contas e operadores.
+Bot principal para gerenciamento de contas, operadores e qualificação.
 
-**Comandos:**
-- `!adicionar_operador [usuario_discord] [primeiro_nome] [nome_completo]`
-- `!remover_operador [usuario_discord]`
-- `!listar_operadores`
-- `!atualizar_operador [usuario_discord] [novo_nome_completo]`
-- `!exportar`
+**Comandos de Operadores de Prospecção:**
+- `!adicionar_operador [usuario_discord] [primeiro_nome] [nome_completo]` - Adiciona um novo operador de prospecção
+- `!remover_operador [usuario_discord]` - Remove um operador de prospecção
+- `!listar_operadores` - Lista todos os operadores de prospecção
+- `!atualizar_operador [usuario_discord] [novo_nome_completo]` - Atualiza o nome de um operador de prospecção
+- `!exportar` - Exporta as contas abertas para Excel
 
-### RKDisc (`rkdisc.py` e `rkdisc2.py`)
+**Comandos de Operadores de Qualificação:**
+- `!adicionar_quali [usuario_discord] [primeiro_nome] [nome_completo]` - Adiciona um novo operador de qualificação
+- `!remover_quali [usuario_discord]` - Remove um operador de qualificação
+- `!listar_quali` - Lista todos os operadores de qualificação
+- `!atualizar_quali [usuario_discord] [novo_nome_completo]` - Atualiza o nome de um operador de qualificação
+- `!exportar_qualificados` - Exporta os contatos qualificados para Excel
+
+### RKDisc (`rkdisc.py`)
 Bot para gerenciamento do ranking de contas abertas.
 
 **Comandos:**
-- `!ranking`
-- `!negada`
-- `!add [nome] [quantidade]`
+- `!ranking` - Mostra o ranking atual de contas abertas
+- `!negada` - Remove uma conta do ranking do operador
+- `!add [nome] [quantidade]` - Adiciona contas manualmente para um operador
+- `!atualizar_operadores` - Atualiza manualmente a lista de operadores (opcional, também atualiza automaticamente)
 
 ### RKQuali (`rkquali.py`)
 Bot para gerenciamento do ranking de qualificação.
 
+**Comandos:**
+- `!contatos` - Mostra o ranking atual de contatos qualificados
+
 ### Campanha (`campanha.py`)
 Bot para gerenciamento de campanhas e avisos.
+
+## 📝 Formatos de Mensagem
+
+### Contas Abertas
+```
+Empresa: [Nome da Empresa]
+CNPJ: [CNPJ]
+Nome: [Nome do Contato]
+Tel: [Telefone]
+E-mail: [Email]
+Origem: [Lead Manual/Repescagem/Discador/Mensageria/URA/BackOffice/Indicação]
+Consultor: [Nome do Consultor]
+Status: [Análise/Aprovada/Carimbada/Reprovada]
+```
+
+### Contatos Qualificados
+```
+Empresa: [Nome da Empresa]
+CNPJ: [CNPJ]
+Nome: [Nome do Contato]
+Tel: [Telefone]
+E-mail: [Email]
+Faturamento da Empresa: [Valor]
+Data conta aberta: [Data]
+Nome do Consultor: [Nome]
+Qualificada ou Contato: [QUALIFICADA/CONTATO]
+Observações sobre o contato: [Observações]
+```
+
+## 🔄 Atualizações Automáticas
+
+- Os rankings são atualizados a cada 30 minutos
+- A lista de operadores é atualizada automaticamente (a cada 10 segundos)
+- Os rankings são resetados à meia-noite
+- Backups automáticos dos dados em JSON
 
 ## 🔒 Segurança
 
 - Todos os tokens são armazenados em variáveis de ambiente
 - Arquivos sensíveis são ignorados pelo git
 - Backup automático dos dados em JSON
+- Validações de formato e duplicidade
 
 ## 📁 Estrutura de Arquivos
 
@@ -89,13 +138,13 @@ Bot para gerenciamento de campanhas e avisos.
 discord-b4b/
 ├── peterbot.py
 ├── rkdisc.py
-├── rkdisc2.py
 ├── rkquali.py
 ├── campanha.py
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
 ├── operadores.example.json
+├── operadores_quali.example.json
 └── README.md
 ```
 
@@ -122,6 +171,7 @@ python campanha.py
 - O arquivo `.env` não deve ser commitado no git
 - Faça backup regular dos arquivos JSON
 - Mantenha os operadores atualizados via comandos do Discord
+- Use os comandos no canal apropriado para cada função
 
 ## 🤝 Contribuindo
 

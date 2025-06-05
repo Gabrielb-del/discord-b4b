@@ -20,8 +20,11 @@ if not TOKEN:
 
 ID_CANAL_MONITORADO = 1321965052454109194
 ID_CANAL_COMANDOS = 1322216912691662868
+ID_CANAL_QUALIFICACAO = 1322216912691662868  # Substitua pelo ID correto do canal de qualificação
 ARQUIVO_JSON = "contas_abertas.json"
 ARQUIVO_OPERADORES = "operadores.json"
+ARQUIVO_QUALIFICADOS = "contatos_qualificados.json"
+ARQUIVO_OPERADORES_QUALI = "operadores_quali.json"  # Novo arquivo para operadores de qualificação
 
 # Função para carregar operadores
 def carregar_operadores():
@@ -55,6 +58,41 @@ def carregar_dados():
     return []
 
 contas_abertas = carregar_dados()
+
+# Função para carregar contatos qualificados
+def carregar_qualificados():
+    if os.path.exists(ARQUIVO_QUALIFICADOS):
+        with open(ARQUIVO_QUALIFICADOS, "r", encoding="utf-8") as f:
+            try:
+                dados = json.load(f)
+                if isinstance(dados, list):
+                    return dados
+                else:
+                    return []
+            except json.JSONDecodeError:
+                return []
+    return []
+
+# Lista para armazenar os contatos qualificados
+contatos_qualificados = carregar_qualificados()
+
+# Função para carregar operadores de qualificação
+def carregar_operadores_quali():
+    if os.path.exists(ARQUIVO_OPERADORES_QUALI):
+        with open(ARQUIVO_OPERADORES_QUALI, "r", encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+# Função para salvar operadores de qualificação
+def salvar_operadores_quali(operadores):
+    with open(ARQUIVO_OPERADORES_QUALI, "w", encoding="utf-8") as f:
+        json.dump(operadores, f, indent=4, ensure_ascii=False)
+
+# Carregar operadores de qualificação ao iniciar
+MAPEAMENTO_USUARIOS_QUALI = carregar_operadores_quali()
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -158,6 +196,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
+    # Processamento de contas abertas
     if message.channel.id == ID_CANAL_MONITORADO:
         if not any(keyword in message.content for keyword in ["Empresa:", "CNPJ:", "Nome:", "Tel:", "E-mail:", "Origem:", "Consultor:", "Status:"]):
             return
@@ -238,9 +277,82 @@ async def on_message(message):
             print(f'Chave "cnpj" não encontrada na conta: {conta}')
             await message.reply("❌ A mensagem não contém um CNPJ válido.")
 
+    # Processamento de contatos qualificados
+    elif message.channel.id == ID_CANAL_QUALIFICACAO:
+        if not any(keyword in message.content for keyword in ["Empresa:", "CNPJ:", "Nome:", "Tel:", "E-mail:", "Faturamento da Empresa:", "Data conta aberta:", "Nome do Consultor:", "Qualificada ou Contato:"]):
+            return
+
+        dados = message.content.strip()
+        
+        # Padrões para extrair informações do contato qualificado
+        padrao_quali = {
+            "empresa": r"Empresa:\s*(.*?)(?=\s*CNPJ:|$)",
+            "cnpj": r"CNPJ:\s*(\d+)(?=\s*Nome:|$)",
+            "nome": r"Nome:\s*(.*?)(?=\s*Tel:|$)",
+            "telefone": r"Tel:\s*(\d+)(?=\s*E-mail:|$)",
+            "email": r"E-mail:\s*(.*?)(?=\s*Faturamento da Empresa:|$)",
+            "faturamento": r"Faturamento da Empresa:\s*(.*?)(?=\s*Data conta aberta:|$)",
+            "data_conta": r"Data conta aberta:\s*(.*?)(?=\s*Nome do Consultor:|$)",
+            "consultor": r"Nome do Consultor:\s*(.*?)(?=\s*Qualificada ou Contato:|$)",
+            "tipo_qualificacao": r"Qualificada ou Contato:\s*(.*?)(?=\s*Observações sobre o contato:|$)",
+            "observacoes": r"Observações sobre o contato:\s*(.*?)$"
+        }
+
+        contato = {}
+        campos_faltantes = []
+        
+        for chave, regex in padrao_quali.items():
+            resultado = re.search(regex, dados, re.DOTALL)
+            if resultado:
+                contato[chave] = resultado.group(1).strip()
+            else:
+                campos_faltantes.append(chave)
+
+        contato["hora_envio"] = datetime.now().strftime("%H:00")
+        contato["data_registro"] = datetime.now().strftime("%d/%m/%Y")
+        contato["mensagem_id"] = message.id
+
+        if len(campos_faltantes) > 0:
+            await message.reply(f"❌ Faltam os seguintes campos: {', '.join(campos_faltantes)}. Por favor, envie novamente.")
+            return
+
+        # Validações específicas para contatos qualificados
+        if 'cnpj' in contato:
+            if not validar_cnpj(contato['cnpj']):
+                await message.reply("❌ CNPJ inválido. O CNPJ deve ter 14 dígitos.")
+                return
+
+        if 'email' in contato:
+            if not validar_email(contato['email']):
+                await message.reply("❌ E-mail inválido. O e-mail deve conter '@'.")
+                return
+
+        # Verifica se o operador está no time de qualificação
+        nome_usuario = message.author.name
+        if nome_usuario in MAPEAMENTO_USUARIOS_QUALI:
+            contato['operador_quali'] = MAPEAMENTO_USUARIOS_QUALI[nome_usuario]
+        else:
+            await message.reply(f"❌ Nome de usuário '{nome_usuario}' não está mapeado no time de qualificação. Contate o administrador.")
+            return
+
+        # Verifica e padroniza o tipo de qualificação
+        tipo_quali = contato.get('tipo_qualificacao', '').strip().upper()
+        if tipo_quali not in ['QUALIFICADA', 'CONTATO']:
+            await message.reply("❌ Tipo de qualificação inválido. Use 'Qualificada' ou 'Contato'.")
+            return
+        contato['tipo_qualificacao'] = tipo_quali
+
+        # Adiciona o contato à lista e salva no arquivo (sem verificar duplicidade)
+        contatos_qualificados.append(contato)
+        with open(ARQUIVO_QUALIFICADOS, "w", encoding="utf-8") as f:
+            json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
+        
+        await message.add_reaction("✅")
+
 #Se a mensagem da conta indicada for apagada no chat, essa conta será removida do json
 @bot.event
 async def on_message_delete(message):
+    # Processamento de exclusão de contas abertas
     if message.channel.id == ID_CANAL_MONITORADO:
         print(f'Mensagem excluída detectada: ID {message.id}')
         for conta in contas_abertas:
@@ -249,6 +361,15 @@ async def on_message_delete(message):
                 with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
                     json.dump(contas_abertas, f, indent=4, ensure_ascii=False)
                 print(f'Conta removida: {conta}')
+                break
+    
+    # Processamento de exclusão de contatos qualificados
+    elif message.channel.id == ID_CANAL_QUALIFICACAO:
+        for contato in contatos_qualificados:
+            if 'mensagem_id' in contato and contato['mensagem_id'] == message.id:
+                contatos_qualificados.remove(contato)
+                with open(ARQUIVO_QUALIFICADOS, "w", encoding="utf-8") as f:
+                    json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
                 break
 
 @bot.command(name="exportar")
@@ -271,6 +392,23 @@ async def exportar(ctx):
         await ctx.send("Aqui está o arquivo de contas abertas:", file=discord.File(arquivo_excel))
     else:
         await ctx.send("Nenhuma conta aberta registrada até o momento.")
+
+@bot.command(name="exportar_qualificados")
+async def exportar_qualificados(ctx):
+    if ctx.channel.id == ID_CANAL_QUALIFICACAO:
+        return
+
+    if contatos_qualificados:
+        colunas_desejadas = ["data_registro", "hora_envio", "cnpj", "empresa", "nome", "telefone", "email", 
+                            "faturamento", "data_conta", "consultor", "tipo_qualificacao", "observacoes"]
+        df = pd.DataFrame(contatos_qualificados)
+        df = df[[col for col in colunas_desejadas if col in df.columns]].fillna("")
+        arquivo_excel = f"CONTATOS_QUALIFICADOS_{datetime.now().strftime('%d%m%Y_%H%M%S')}.xlsx"
+        df.to_excel(arquivo_excel, index=False)
+
+        await ctx.send("Aqui está o arquivo de contatos qualificados:", file=discord.File(arquivo_excel))
+    else:
+        await ctx.send("Nenhum contato qualificado registrado até o momento.")
 
 # Comandos para gerenciar operadores
 @bot.command(name="adicionar_operador")
@@ -330,5 +468,64 @@ async def atualizar_operador(ctx, usuario_discord: str, *, novo_nome_completo: s
         await ctx.send(f"✅ Nome do operador {usuario_discord} atualizado para: {novo_nome_completo}")
     else:
         await ctx.send(f"❌ Operador {usuario_discord} não encontrado!")
+
+# Comandos para gerenciar operadores de qualificação
+@bot.command(name="adicionar_quali")
+async def adicionar_operador_quali(ctx, usuario_discord: str, primeiro_nome: str, *, nome_completo: str):
+    """Adiciona um novo operador ao time de qualificação
+    Exemplo: !adicionar_quali joao.b4b João 'João Silva Santos'"""
+    if ctx.channel.id != ID_CANAL_COMANDOS:
+        return
+        
+    global MAPEAMENTO_USUARIOS_QUALI
+    MAPEAMENTO_USUARIOS_QUALI[usuario_discord] = nome_completo
+    salvar_operadores_quali(MAPEAMENTO_USUARIOS_QUALI)
+    await ctx.send(f"✅ Operador de qualificação adicionado com sucesso!\nUsuário Discord: {usuario_discord}\nNome Completo: {nome_completo}")
+
+@bot.command(name="remover_quali")
+async def remover_operador_quali(ctx, usuario_discord: str):
+    """Remove um operador do time de qualificação
+    Exemplo: !remover_quali joao.b4b"""
+    if ctx.channel.id != ID_CANAL_COMANDOS:
+        return
+        
+    global MAPEAMENTO_USUARIOS_QUALI
+    if usuario_discord in MAPEAMENTO_USUARIOS_QUALI:
+        del MAPEAMENTO_USUARIOS_QUALI[usuario_discord]
+        salvar_operadores_quali(MAPEAMENTO_USUARIOS_QUALI)
+        await ctx.send(f"✅ Operador de qualificação {usuario_discord} removido com sucesso!")
+    else:
+        await ctx.send(f"❌ Operador de qualificação {usuario_discord} não encontrado!")
+
+@bot.command(name="listar_quali")
+async def listar_operadores_quali(ctx):
+    """Lista todos os operadores do time de qualificação"""
+    if ctx.channel.id != ID_CANAL_COMANDOS:
+        return
+        
+    if not MAPEAMENTO_USUARIOS_QUALI:
+        await ctx.send("Nenhum operador de qualificação cadastrado!")
+        return
+        
+    mensagem = "📋 **Lista de Operadores de Qualificação:**\n\n"
+    for usuario, nome in MAPEAMENTO_USUARIOS_QUALI.items():
+        mensagem += f"👤 **{usuario}** - {nome}\n"
+    
+    await ctx.send(mensagem)
+
+@bot.command(name="atualizar_quali")
+async def atualizar_operador_quali(ctx, usuario_discord: str, *, novo_nome_completo: str):
+    """Atualiza o nome completo de um operador de qualificação
+    Exemplo: !atualizar_quali joao.b4b 'João Silva Santos Junior'"""
+    if ctx.channel.id != ID_CANAL_COMANDOS:
+        return
+        
+    global MAPEAMENTO_USUARIOS_QUALI
+    if usuario_discord in MAPEAMENTO_USUARIOS_QUALI:
+        MAPEAMENTO_USUARIOS_QUALI[usuario_discord] = novo_nome_completo
+        salvar_operadores_quali(MAPEAMENTO_USUARIOS_QUALI)
+        await ctx.send(f"✅ Nome do operador de qualificação {usuario_discord} atualizado para: {novo_nome_completo}")
+    else:
+        await ctx.send(f"❌ Operador de qualificação {usuario_discord} não encontrado!")
 
 bot.run(TOKEN)

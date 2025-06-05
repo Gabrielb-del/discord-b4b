@@ -6,6 +6,7 @@ import datetime
 import os
 from collections import defaultdict
 from dotenv import load_dotenv
+import time
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -22,6 +23,9 @@ CANAL_ID = 1321965052454109194
 CONTAS_ABERTAS_FILE = "contas_abertas.json"
 ARQUIVO_OPERADORES = "operadores.json"  # Arquivo compartilhado com o peterbot.py
 
+# Variável para armazenar a última modificação do arquivo
+ultima_modificacao = 0
+
 # Função para carregar operadores do arquivo JSON
 def carregar_operadores():
     if os.path.exists(ARQUIVO_OPERADORES):
@@ -31,6 +35,18 @@ def carregar_operadores():
             except json.JSONDecodeError:
                 return {}
     return {}
+
+# Função para verificar se o arquivo foi modificado
+def arquivo_foi_modificado():
+    global ultima_modificacao
+    try:
+        modificacao_atual = os.path.getmtime(ARQUIVO_OPERADORES)
+        if modificacao_atual != ultima_modificacao:
+            ultima_modificacao = modificacao_atual
+            return True
+    except OSError:
+        pass
+    return False
 
 # Função para salvar operadores no arquivo JSON
 def salvar_operadores(operadores):
@@ -44,7 +60,7 @@ MAPEAMENTO_USUARIOS = carregar_operadores()
 operadores = []
 
 def atualizar_lista_operadores():
-    global operadores
+    global operadores, MAPEAMENTO_USUARIOS
     # Obtém todos os nomes completos dos operadores
     nomes_completos = list(MAPEAMENTO_USUARIOS.values())
     
@@ -210,10 +226,24 @@ async def resetar_ranking():
         if canal:
             await canal.send("🌙 **Ranking resetado!** Um novo dia começa. Vamos com tudo! 🚀")
 
+@tasks.loop(seconds=10)  # Verifica a cada 10 segundos
+async def monitorar_operadores():
+    if arquivo_foi_modificado():
+        global MAPEAMENTO_USUARIOS
+        MAPEAMENTO_USUARIOS = carregar_operadores()
+        atualizar_lista_operadores()
+        canal = bot.get_channel(CANAL_ID)
+        if canal:
+            await canal.send("📝 Lista de operadores atualizada automaticamente!")
+            await ranking(bot.get_context(await canal.fetch_message(canal.last_message_id)))
+
 @bot.event
 async def on_ready():
     print(f'Bot está online como {bot.user.name}')
+    global ultima_modificacao
+    ultima_modificacao = os.path.getmtime(ARQUIVO_OPERADORES)
     atualizar_lista_operadores()  # Atualiza a lista de operadores ao iniciar
+    monitorar_operadores.start()  # Inicia o monitoramento do arquivo
     enviar_ranking_periodico.start()
     resetar_ranking.start()
 
@@ -274,6 +304,23 @@ async def add(ctx, nome: str, quantidade: int):
 
     salvar_ranking(ranking)
     await ctx.send(f"✅ {quantidade} conta(s) adicionada(s) para {nome}. Agora ele(a) tem {ranking[nome]} conta(s).")
+
+@bot.command(name="atualizar_operadores")
+async def atualizar_operadores_cmd(ctx):
+    """Atualiza a lista de operadores do ranking em tempo real"""
+    if ctx.channel.id != CANAL_ID:
+        await ctx.send("❌ Este comando só pode ser usado no canal de prospecção.")
+        return
+
+    global MAPEAMENTO_USUARIOS
+    # Recarrega os operadores do arquivo
+    MAPEAMENTO_USUARIOS = carregar_operadores()
+    # Atualiza a lista de nomes para o ranking
+    atualizar_lista_operadores()
+    
+    await ctx.send("✅ Lista de operadores atualizada com sucesso!")
+    # Mostra o ranking atualizado
+    await ranking(ctx)
 
 bot.run(TOKEN)
 
