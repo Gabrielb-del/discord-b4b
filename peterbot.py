@@ -331,6 +331,7 @@ async def on_message(message):
         nome_usuario = message.author.name
         if nome_usuario in MAPEAMENTO_USUARIOS_QUALI:
             contato['operador_quali'] = MAPEAMENTO_USUARIOS_QUALI[nome_usuario]
+            contato['consultor'] = contato['operador_quali']  # Usa o nome do operador de qualificação como consultor
         else:
             await message.reply(f"❌ Nome de usuário '{nome_usuario}' não está mapeado no time de qualificação. Contate o administrador.")
             return
