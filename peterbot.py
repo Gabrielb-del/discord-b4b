@@ -178,12 +178,20 @@ async def resetar_contas():
         json.dump(contas_abertas, f, indent=4, ensure_ascii=False)
     print("🔄 Contas resetadas para o novo dia.")
 
+@tasks.loop(time=time(hour=0, minute=0))
+async def resetar_quali():
+    global contatos_qualificados
+    contatos_qualificados = []
+    with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
+        json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
+    print("🔄 Contatos resetadas para o novo dia.")
+
 @bot.event
 async def on_ready():
     print(f'Logado como {bot.user}')
     print(f'Comandos registrados: {[cmd.name for cmd in bot.commands]}')
     resetar_contas.start()
-
+    resetar_quali.start()
 
 #Evento para verificar a mensagem a adicionar a conta indicada no 'contas_abertas.json'
 @bot.event
