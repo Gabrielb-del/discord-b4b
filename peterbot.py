@@ -321,6 +321,18 @@ async def on_message(message):
             if not validar_cnpj(contato['cnpj']):
                 await message.reply("❌ CNPJ inválido. O CNPJ deve ter 14 dígitos.")
                 return
+            
+            # Verifica se o CNPJ já foi registrado
+            for contato_existente in contatos_qualificados:
+                if contato_existente['cnpj'] == contato['cnpj']:
+                    # Se o mesmo operador já registrou este CNPJ
+                    if contato_existente.get('operador_quali') == MAPEAMENTO_USUARIOS_QUALI[message.author.name]:
+                        await message.add_reaction("✅")
+                        return
+                    # Se outro operador já registrou este CNPJ
+                    else:
+                        await message.reply(f"⚠️ Este CNPJ já foi registrado pelo operador: {contato_existente.get('operador_quali')}")
+                        return
 
         if 'email' in contato:
             if not validar_email(contato['email']):
@@ -366,11 +378,15 @@ async def on_message_delete(message):
     
     # Processamento de exclusão de contatos qualificados
     elif message.channel.id == ID_CANAL_QUALIFICACAO:
+        print(f'Mensagem de qualificação excluída detectada: ID {message.id}')
         for contato in contatos_qualificados:
             if 'mensagem_id' in contato and contato['mensagem_id'] == message.id:
+                operador = contato.get('operador_quali', 'Não identificado')
+                cnpj = contato.get('cnpj', 'Não informado')
                 contatos_qualificados.remove(contato)
                 with open(ARQUIVO_QUALIFICADOS, "w", encoding="utf-8") as f:
                     json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
+                print(f'Contato qualificado removido - Operador: {operador}, CNPJ: {cnpj}')
                 break
 
 @bot.command(name="exportar")
