@@ -287,14 +287,14 @@ async def on_message(message):
 
     # Processamento de contatos qualificados
     elif message.channel.id == ID_CANAL_QUALIFICACAO:
-        if not any(keyword in message.content for keyword in ["Empresa:", "CNPJ:", "Nome:", "Tel:", "E-mail:", "Faturamento da Empresa:", "Data conta aberta:", "Nome do Consultor:", "Qualificada ou Contato:"]):
+        if not any(keyword in message.content for keyword in ["Empresa:", "Razão Social:", "CNPJ:", "Nome:", "Tel:", "E-mail:", "Faturamento da Empresa:", "Data conta aberta:", "Nome do Consultor:", "Qualificada ou Contato:"]):
             return
 
         dados = message.content.strip()
         
         # Padrões para extrair informações do contato qualificado
         padrao_quali = {
-            "empresa": r"Empresa:\s*(.*?)(?=\s*CNPJ:|$)",
+            "empresa": r"(?:Empresa|Razão Social):\s*(.*?)(?=\s*CNPJ:|$)",
             "cnpj": r"CNPJ:\s*(\d+)(?=\s*Nome:|$)",
             "nome": r"Nome:\s*(.*?)(?=\s*Tel:|$)",
             "telefone": r"Tel:\s*(\d+)(?=\s*E-mail:|$)",
@@ -310,9 +310,12 @@ async def on_message(message):
         campos_faltantes = []
         
         for chave, regex in padrao_quali.items():
-            resultado = re.search(regex, dados, re.DOTALL)
+            resultado = re.search(regex, dados, re.DOTALL | re.IGNORECASE)
             if resultado:
-                contato[chave] = resultado.group(1).strip()
+                valor = resultado.group(1).strip()
+                # Remove possíveis quebras de linha no valor
+                valor = ' '.join(valor.splitlines()).strip()
+                contato[chave] = valor
             else:
                 campos_faltantes.append(chave)
 
