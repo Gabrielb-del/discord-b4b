@@ -178,7 +178,9 @@ def salvar_contas_abertas():
     try:
         with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
             json.dump(contas_abertas, f, indent=4, ensure_ascii=False)
-        print("✅ Arquivo de contas abertas salvo com sucesso")
+            f.flush()
+            os.fsync(f.fileno())
+        print(f"✅ Arquivo de contas abertas salvo com sucesso. Total de contas: {len(contas_abertas)}")
     except Exception as e:
         print(f"❌ Erro ao salvar arquivo de contas abertas: {e}")
 
@@ -186,7 +188,9 @@ def salvar_contatos_qualificados():
     try:
         with open(ARQUIVO_QUALIFICADOS, "w", encoding="utf-8") as f:
             json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
-        print("✅ Arquivo de contatos qualificados salvo com sucesso")
+            f.flush()
+            os.fsync(f.fileno())
+        print(f"✅ Arquivo de contatos qualificados salvo com sucesso. Total de contatos: {len(contatos_qualificados)}")
     except Exception as e:
         print(f"❌ Erro ao salvar arquivo de contatos qualificados: {e}")
 
@@ -446,38 +450,64 @@ async def on_message_delete(message):
         # Processamento de exclusão de contas abertas
         if message.channel.id == ID_CANAL_MONITORADO:
             print(f'🗑️ Mensagem excluída detectada no canal monitorado: ID {message.id}')
-            conta_removida = None
+            print(f'Total de contas antes da remoção: {len(contas_abertas)}')
             
-            for conta in contas_abertas[:]:  # Cria uma cópia da lista para iterar
-                if 'mensagem_id' in conta and conta['mensagem_id'] == message.id:
+            conta_removida = None
+            indice_remocao = None
+            
+            # Procura a conta a ser removida
+            for i, conta in enumerate(contas_abertas):
+                if conta.get('mensagem_id') == message.id:
                     conta_removida = conta
-                    contas_abertas.remove(conta)
-                    print(f'✅ Conta encontrada e removida: {conta}')
+                    indice_remocao = i
                     break
             
-            if conta_removida:
-                salvar_contas_abertas()
-                print(f'Conta removida com sucesso - CNPJ: {conta_removida.get("cnpj", "N/A")}, Consultor: {conta_removida.get("consultor", "N/A")}')
+            # Remove a conta se encontrada
+            if conta_removida and indice_remocao is not None:
+                del contas_abertas[indice_remocao]
+                print(f'✅ Conta encontrada e removida: {conta_removida}')
+                print(f'Total de contas após remoção: {len(contas_abertas)}')
+                
+                # Força a atualização do arquivo
+                try:
+                    salvar_contas_abertas()
+                    print(f'Conta removida com sucesso - CNPJ: {conta_removida.get("cnpj", "N/A")}, Consultor: {conta_removida.get("consultor", "N/A")}')
+                except Exception as e:
+                    print(f"❌ Erro ao salvar arquivo após remoção: {e}")
             else:
                 print(f'❌ Nenhuma conta encontrada para a mensagem ID {message.id}')
+                print(f'IDs das mensagens nas contas: {[c.get("mensagem_id") for c in contas_abertas]}')
         
         # Processamento de exclusão de contatos qualificados
         elif message.channel.id == ID_CANAL_QUALIFICACAO:
             print(f'🗑️ Mensagem de qualificação excluída detectada: ID {message.id}')
-            contato_removido = None
+            print(f'Total de contatos antes da remoção: {len(contatos_qualificados)}')
             
-            for contato in contatos_qualificados[:]:  # Cria uma cópia da lista para iterar
-                if 'mensagem_id' in contato and contato['mensagem_id'] == message.id:
+            contato_removido = None
+            indice_remocao = None
+            
+            # Procura o contato a ser removido
+            for i, contato in enumerate(contatos_qualificados):
+                if contato.get('mensagem_id') == message.id:
                     contato_removido = contato
-                    contatos_qualificados.remove(contato)
-                    print(f'✅ Contato qualificado encontrado e removido: {contato}')
+                    indice_remocao = i
                     break
             
-            if contato_removido:
-                salvar_contatos_qualificados()
-                print(f'Contato removido com sucesso - CNPJ: {contato_removido.get("cnpj", "N/A")}, Operador: {contato_removido.get("operador_quali", "N/A")}')
+            # Remove o contato se encontrado
+            if contato_removido and indice_remocao is not None:
+                del contatos_qualificados[indice_remocao]
+                print(f'✅ Contato qualificado encontrado e removido: {contato_removido}')
+                print(f'Total de contatos após remoção: {len(contatos_qualificados)}')
+                
+                # Força a atualização do arquivo
+                try:
+                    salvar_contatos_qualificados()
+                    print(f'Contato removido com sucesso - CNPJ: {contato_removido.get("cnpj", "N/A")}, Operador: {contato_removido.get("operador_quali", "N/A")}')
+                except Exception as e:
+                    print(f"❌ Erro ao salvar arquivo após remoção: {e}")
             else:
                 print(f'❌ Nenhum contato qualificado encontrado para a mensagem ID {message.id}')
+                print(f'IDs das mensagens nos contatos: {[c.get("mensagem_id") for c in contatos_qualificados]}')
     
     except Exception as e:
         print(f"❌ Erro ao processar exclusão de mensagem: {e}")
