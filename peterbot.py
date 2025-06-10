@@ -94,6 +94,10 @@ def salvar_operadores_quali(operadores):
 # Carregar operadores de qualificação ao iniciar
 MAPEAMENTO_USUARIOS_QUALI = carregar_operadores_quali()
 
+# Variável para armazenar a última modificação dos arquivos
+ultima_modificacao_operadores = 0
+ultima_modificacao_operadores_quali = 0
+
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
@@ -170,6 +174,22 @@ def padronizar_origem(origem):
 def validar_email(email):
     return "@" in email
 
+def salvar_contas_abertas():
+    try:
+        with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
+            json.dump(contas_abertas, f, indent=4, ensure_ascii=False)
+        print("✅ Arquivo de contas abertas salvo com sucesso")
+    except Exception as e:
+        print(f"❌ Erro ao salvar arquivo de contas abertas: {e}")
+
+def salvar_contatos_qualificados():
+    try:
+        with open(ARQUIVO_QUALIFICADOS, "w", encoding="utf-8") as f:
+            json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
+        print("✅ Arquivo de contatos qualificados salvo com sucesso")
+    except Exception as e:
+        print(f"❌ Erro ao salvar arquivo de contatos qualificados: {e}")
+
 @tasks.loop(time=time(hour=0, minute=0))
 async def resetar_contas():
     global contas_abertas
@@ -186,12 +206,59 @@ async def resetar_quali():
         json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
     print("🔄 Contatos resetadas para o novo dia.")
 
+@tasks.loop(seconds=10)
+async def monitorar_arquivos_operadores():
+    global MAPEAMENTO_USUARIOS, MAPEAMENTO_USUARIOS_QUALI, ultima_modificacao_operadores, ultima_modificacao_operadores_quali
+    
+    try:
+        # Verifica alterações no arquivo de operadores
+        if os.path.exists(ARQUIVO_OPERADORES):
+            mod_operadores = os.path.getmtime(ARQUIVO_OPERADORES)
+            if mod_operadores != ultima_modificacao_operadores:
+                print("📝 Detectada modificação no arquivo de operadores")
+                MAPEAMENTO_USUARIOS = carregar_operadores()
+                ultima_modificacao_operadores = mod_operadores
+                
+                # Notifica no canal de comandos
+                canal = bot.get_channel(ID_CANAL_COMANDOS)
+                if canal:
+                    await canal.send("📝 Lista de operadores atualizada!")
+        
+        # Verifica alterações no arquivo de operadores de qualificação
+        if os.path.exists(ARQUIVO_OPERADORES_QUALI):
+            mod_quali = os.path.getmtime(ARQUIVO_OPERADORES_QUALI)
+            if mod_quali != ultima_modificacao_operadores_quali:
+                print("📝 Detectada modificação no arquivo de operadores de qualificação")
+                MAPEAMENTO_USUARIOS_QUALI = carregar_operadores_quali()
+                ultima_modificacao_operadores_quali = mod_quali
+                
+                # Notifica no canal de comandos
+                canal = bot.get_channel(ID_CANAL_COMANDOS)
+                if canal:
+                    await canal.send("📝 Lista de operadores de qualificação atualizada!")
+    
+    except Exception as e:
+        print(f"❌ Erro ao monitorar arquivos de operadores: {e}")
+
 @bot.event
 async def on_ready():
     print(f'Logado como {bot.user}')
     print(f'Comandos registrados: {[cmd.name for cmd in bot.commands]}')
+    
+    # Inicializa as variáveis de última modificação
+    global ultima_modificacao_operadores, ultima_modificacao_operadores_quali
+    try:
+        ultima_modificacao_operadores = os.path.getmtime(ARQUIVO_OPERADORES) if os.path.exists(ARQUIVO_OPERADORES) else 0
+        ultima_modificacao_operadores_quali = os.path.getmtime(ARQUIVO_OPERADORES_QUALI) if os.path.exists(ARQUIVO_OPERADORES_QUALI) else 0
+    except Exception as e:
+        print(f"❌ Erro ao obter última modificação dos arquivos: {e}")
+        ultima_modificacao_operadores = 0
+        ultima_modificacao_operadores_quali = 0
+    
+    # Inicia os loops de tarefas
     resetar_contas.start()
     resetar_quali.start()
+    monitorar_arquivos_operadores.start()
 
 #Evento para verificar a mensagem a adicionar a conta indicada no 'contas_abertas.json'
 @bot.event
@@ -373,32 +440,47 @@ async def on_message(message):
         
         await message.add_reaction("✅")
 
-#Se a mensagem da conta indicada for apagada no chat, essa conta será removida do json
 @bot.event
 async def on_message_delete(message):
-    # Processamento de exclusão de contas abertas
-    if message.channel.id == ID_CANAL_MONITORADO:
-        print(f'Mensagem excluída detectada: ID {message.id}')
-        for conta in contas_abertas:
-            if 'mensagem_id' in conta and conta['mensagem_id'] == message.id:
-                contas_abertas.remove(conta)
-                with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
-                    json.dump(contas_abertas, f, indent=4, ensure_ascii=False)
-                print(f'Conta removida: {conta}')
-                break
+    try:
+        # Processamento de exclusão de contas abertas
+        if message.channel.id == ID_CANAL_MONITORADO:
+            print(f'🗑️ Mensagem excluída detectada no canal monitorado: ID {message.id}')
+            conta_removida = None
+            
+            for conta in contas_abertas[:]:  # Cria uma cópia da lista para iterar
+                if 'mensagem_id' in conta and conta['mensagem_id'] == message.id:
+                    conta_removida = conta
+                    contas_abertas.remove(conta)
+                    print(f'✅ Conta encontrada e removida: {conta}')
+                    break
+            
+            if conta_removida:
+                salvar_contas_abertas()
+                print(f'Conta removida com sucesso - CNPJ: {conta_removida.get("cnpj", "N/A")}, Consultor: {conta_removida.get("consultor", "N/A")}')
+            else:
+                print(f'❌ Nenhuma conta encontrada para a mensagem ID {message.id}')
+        
+        # Processamento de exclusão de contatos qualificados
+        elif message.channel.id == ID_CANAL_QUALIFICACAO:
+            print(f'🗑️ Mensagem de qualificação excluída detectada: ID {message.id}')
+            contato_removido = None
+            
+            for contato in contatos_qualificados[:]:  # Cria uma cópia da lista para iterar
+                if 'mensagem_id' in contato and contato['mensagem_id'] == message.id:
+                    contato_removido = contato
+                    contatos_qualificados.remove(contato)
+                    print(f'✅ Contato qualificado encontrado e removido: {contato}')
+                    break
+            
+            if contato_removido:
+                salvar_contatos_qualificados()
+                print(f'Contato removido com sucesso - CNPJ: {contato_removido.get("cnpj", "N/A")}, Operador: {contato_removido.get("operador_quali", "N/A")}')
+            else:
+                print(f'❌ Nenhum contato qualificado encontrado para a mensagem ID {message.id}')
     
-    # Processamento de exclusão de contatos qualificados
-    elif message.channel.id == ID_CANAL_QUALIFICACAO:
-        print(f'Mensagem de qualificação excluída detectada: ID {message.id}')
-        for contato in contatos_qualificados:
-            if 'mensagem_id' in contato and contato['mensagem_id'] == message.id:
-                operador = contato.get('operador_quali', 'Não identificado')
-                cnpj = contato.get('cnpj', 'Não informado')
-                contatos_qualificados.remove(contato)
-                with open(ARQUIVO_QUALIFICADOS, "w", encoding="utf-8") as f:
-                    json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
-                print(f'Contato qualificado removido - Operador: {operador}, CNPJ: {cnpj}')
-                break
+    except Exception as e:
+        print(f"❌ Erro ao processar exclusão de mensagem: {e}")
 
 @bot.command(name="exportar")
 async def exportar(ctx):
