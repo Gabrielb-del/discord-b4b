@@ -429,7 +429,6 @@ async def on_message(message):
         contato, campos_faltantes = processar_dados_contato(dados)
         
         if not contato:
-            await message.reply("❌ Erro ao processar a mensagem. Por favor, verifique o formato e tente novamente.")
             return
             
         if campos_faltantes:
