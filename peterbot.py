@@ -204,11 +204,27 @@ async def resetar_contas():
 
 @tasks.loop(time=time(hour=0, minute=0))
 async def resetar_quali():
-    global contatos_qualificados
-    contatos_qualificados = []
-    with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
-        json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
-    print("🔄 Contatos resetadas para o novo dia.")
+    try:
+        global contatos_qualificados
+        print("🔄 Iniciando reset dos contatos qualificados...")
+        
+        # Faz backup dos dados antigos antes de resetar
+        if contatos_qualificados:
+            data_anterior = (datetime.now() - datetime.timedelta(days=1)).strftime("%d%m%Y")
+            arquivo_backup = f"backup_contatos_qualificados_{data_anterior}.json"
+            try:
+                with open(arquivo_backup, "w", encoding="utf-8") as f:
+                    json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
+                print(f"✅ Backup dos contatos salvos em: {arquivo_backup}")
+            except Exception as e:
+                print(f"❌ Erro ao criar backup dos contatos: {e}")
+        
+        # Reseta a lista de contatos
+        contatos_qualificados = []
+        salvar_contatos_qualificados()
+        print("✅ Contatos qualificados resetados para o novo dia.")
+    except Exception as e:
+        print(f"❌ Erro ao resetar contatos qualificados: {e}")
 
 @tasks.loop(seconds=10)
 async def monitorar_arquivos_operadores():
@@ -264,7 +280,56 @@ async def on_ready():
     resetar_quali.start()
     monitorar_arquivos_operadores.start()
 
-#Evento para verificar a mensagem a adicionar a conta indicada no 'contas_abertas.json'
+# Função para validar e limpar os dados do contato
+def processar_dados_contato(dados):
+    try:
+        # Padrões para extrair informações do contato qualificado
+        padrao_quali = {
+            "empresa": r"(?:Empresa|Razão Social):\s*(.*?)(?=\s*CNPJ:|$)",
+            "cnpj": r"CNPJ:\s*(\d+)(?=\s*Nome:|$)",
+            "nome": r"Nome:\s*(.*?)(?=\s*Tel:|$)",
+            "telefone": r"Tel:\s*(\d+)(?=\s*E-mail:|$)",
+            "email": r"E-mail:\s*(.*?)(?=\s*Faturamento da Empresa:|$)",
+            "faturamento": r"Faturamento da Empresa:\s*(.*?)(?=\s*Data conta aberta:|$)",
+            "data_conta": r"Data conta aberta:\s*(.*?)(?=\s*Nome do Consultor:|$)",
+            "consultor": r"Nome do Consultor:\s*(.*?)(?=\s*Qualificada ou Contato:|$)",
+            "tipo_qualificacao": r"Qualificada ou Contato:\s*(.*?)(?=\s*Observações sobre o contato:|$)",
+            "observacoes": r"Observações sobre o contato:\s*(.*?)$"
+        }
+
+        contato = {}
+        campos_faltantes = []
+        
+        # Processa cada campo com validação extra
+        for chave, regex in padrao_quali.items():
+            resultado = re.search(regex, dados, re.DOTALL | re.IGNORECASE)
+            if resultado:
+                valor = resultado.group(1).strip()
+                # Remove quebras de linha e espaços extras
+                valor = ' '.join(valor.splitlines()).strip()
+                
+                # Validações específicas por campo
+                if chave == "cnpj" and valor:
+                    # Remove caracteres não numéricos do CNPJ
+                    valor = re.sub(r'\D', '', valor)
+                elif chave == "telefone" and valor:
+                    # Remove caracteres não numéricos do telefone
+                    valor = re.sub(r'\D', '', valor)
+                elif chave == "tipo_qualificacao" and valor:
+                    # Padroniza o tipo de qualificação
+                    valor = valor.upper().strip()
+                    if valor not in ['QUALIFICADA', 'CONTATO']:
+                        raise ValueError(f"Tipo de qualificação inválido: {valor}")
+                
+                contato[chave] = valor
+            else:
+                campos_faltantes.append(chave)
+        
+        return contato, campos_faltantes
+    except Exception as e:
+        print(f"❌ Erro ao processar dados do contato: {e}")
+        return None, ["erro_processamento"]
+
 @bot.event
 async def on_message(message):
     if message.author.bot:
@@ -358,91 +423,53 @@ async def on_message(message):
 
     # Processamento de contatos qualificados
     elif message.channel.id == ID_CANAL_QUALIFICACAO:
-        if not any(keyword in message.content for keyword in ["Empresa:", "Razão Social:", "CNPJ:", "Nome:", "Tel:", "E-mail:", "Faturamento da Empresa:", "Data conta aberta:", "Nome do Consultor:", "Qualificada ou Contato:"]):
-            return
-
         dados = message.content.strip()
         
-        # Padrões para extrair informações do contato qualificado
-        padrao_quali = {
-            "empresa": r"(?:Empresa|Razão Social):\s*(.*?)(?=\s*CNPJ:|$)",
-            "cnpj": r"CNPJ:\s*(\d+)(?=\s*Nome:|$)",
-            "nome": r"Nome:\s*(.*?)(?=\s*Tel:|$)",
-            "telefone": r"Tel:\s*(\d+)(?=\s*E-mail:|$)",
-            "email": r"E-mail:\s*(.*?)(?=\s*Faturamento da Empresa:|$)",
-            "faturamento": r"Faturamento da Empresa:\s*(.*?)(?=\s*Data conta aberta:|$)",
-            "data_conta": r"Data conta aberta:\s*(.*?)(?=\s*Nome do Consultor:|$)",
-            "consultor": r"Nome do Consultor:\s*(.*?)(?=\s*Qualificada ou Contato:|$)",
-            "tipo_qualificacao": r"Qualificada ou Contato:\s*(.*?)(?=\s*Observações sobre o contato:|$)",
-            "observacoes": r"Observações sobre o contato:\s*(.*?)$"
-        }
-
-        contato = {}
-        campos_faltantes = []
+        # Processa os dados do contato
+        contato, campos_faltantes = processar_dados_contato(dados)
         
-        for chave, regex in padrao_quali.items():
-            resultado = re.search(regex, dados, re.DOTALL | re.IGNORECASE)
-            if resultado:
-                valor = resultado.group(1).strip()
-                # Remove possíveis quebras de linha no valor
-                valor = ' '.join(valor.splitlines()).strip()
-                contato[chave] = valor
-            else:
-                campos_faltantes.append(chave)
-
-        contato["hora_envio"] = datetime.now().strftime("%H:00")
-        contato["data_registro"] = datetime.now().strftime("%d/%m/%Y")
-        contato["mensagem_id"] = message.id
-
-        if len(campos_faltantes) > 0:
+        if not contato:
+            await message.reply("❌ Erro ao processar a mensagem. Por favor, verifique o formato e tente novamente.")
+            return
+            
+        if campos_faltantes:
             await message.reply(f"❌ Faltam os seguintes campos: {', '.join(campos_faltantes)}. Por favor, envie novamente.")
             return
 
-        # Validações específicas para contatos qualificados
-        if 'cnpj' in contato:
-            if not validar_cnpj(contato['cnpj']):
-                await message.reply("❌ CNPJ inválido. O CNPJ deve ter 14 dígitos.")
-                return
-            
-            # Verifica se o CNPJ já foi registrado
-            for contato_existente in contatos_qualificados:
-                if contato_existente['cnpj'] == contato['cnpj']:
-                    # Se o mesmo operador já registrou este CNPJ
-                    if contato_existente.get('operador_quali') == MAPEAMENTO_USUARIOS_QUALI[message.author.name]:
-                        await message.add_reaction("✅")
-                        return
-                    # Se outro operador já registrou este CNPJ
-                    else:
-                        await message.reply(f"⚠️ Este CNPJ já foi registrado pelo operador: {contato_existente.get('operador_quali')}")
-                        return
+        # Adiciona campos de controle
+        contato["hora_envio"] = datetime.now().strftime("%H:%M")
+        contato["data_registro"] = datetime.now().strftime("%d/%m/%Y")
+        contato["mensagem_id"] = message.id
 
-        if 'email' in contato:
-            if not validar_email(contato['email']):
-                await message.reply("❌ E-mail inválido. O e-mail deve conter '@'.")
-                return
-
-        # Verifica se o operador está no time de qualificação
+        # Verifica o operador
         nome_usuario = message.author.name
         if nome_usuario in MAPEAMENTO_USUARIOS_QUALI:
             contato['operador_quali'] = MAPEAMENTO_USUARIOS_QUALI[nome_usuario]
-            contato['consultor'] = contato['operador_quali']  # Usa o nome do operador de qualificação como consultor
+            contato['consultor'] = contato['operador_quali']
         else:
             await message.reply(f"❌ Nome de usuário '{nome_usuario}' não está mapeado no time de qualificação. Contate o administrador.")
             return
 
-        # Verifica e padroniza o tipo de qualificação
-        tipo_quali = contato.get('tipo_qualificacao', '').strip().upper()
-        if tipo_quali not in ['QUALIFICADA', 'CONTATO']:
-            await message.reply("❌ Tipo de qualificação inválido. Use 'Qualificada' ou 'Contato'.")
-            return
-        contato['tipo_qualificacao'] = tipo_quali
+        # Verifica duplicidade de CNPJ
+        if 'cnpj' in contato:
+            for contato_existente in contatos_qualificados:
+                if contato_existente['cnpj'] == contato['cnpj']:
+                    if contato_existente.get('operador_quali') == MAPEAMENTO_USUARIOS_QUALI[message.author.name]:
+                        await message.add_reaction("✅")
+                        return
+                    else:
+                        await message.reply(f"⚠️ Este CNPJ já foi registrado pelo operador: {contato_existente.get('operador_quali')}")
+                        return
 
-        # Adiciona o contato à lista e salva no arquivo (sem verificar duplicidade)
+        # Salva o contato
         contatos_qualificados.append(contato)
-        with open(ARQUIVO_QUALIFICADOS, "w", encoding="utf-8") as f:
-            json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
-        
-        await message.add_reaction("✅")
+        try:
+            salvar_contatos_qualificados()
+            await message.add_reaction("✅")
+        except Exception as e:
+            print(f"❌ Erro ao salvar contato: {e}")
+            await message.reply("❌ Erro ao salvar o contato. Por favor, tente novamente.")
+            contatos_qualificados.remove(contato)
 
 @bot.event
 async def on_message_delete(message):
