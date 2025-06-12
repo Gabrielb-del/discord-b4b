@@ -204,27 +204,11 @@ async def resetar_contas():
 
 @tasks.loop(time=time(hour=0, minute=0))
 async def resetar_quali():
-    try:
-        global contatos_qualificados
-        print("🔄 Iniciando reset dos contatos qualificados...")
-        
-        # Faz backup dos dados antigos antes de resetar
-        if contatos_qualificados:
-            data_anterior = (datetime.now() - datetime.timedelta(days=1)).strftime("%d%m%Y")
-            arquivo_backup = f"backup_contatos_qualificados_{data_anterior}.json"
-            try:
-                with open(arquivo_backup, "w", encoding="utf-8") as f:
-                    json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
-                print(f"✅ Backup dos contatos salvos em: {arquivo_backup}")
-            except Exception as e:
-                print(f"❌ Erro ao criar backup dos contatos: {e}")
-        
-        # Reseta a lista de contatos
-        contatos_qualificados = []
-        salvar_contatos_qualificados()
-        print("✅ Contatos qualificados resetados para o novo dia.")
-    except Exception as e:
-        print(f"❌ Erro ao resetar contatos qualificados: {e}")
+    global contatos_qualificados
+    contatos_qualificados = []
+    with open(ARQUIVO_QUALIFICADOS, "w", encoding="utf-8") as f:
+        json.dump(contatos_qualificados, f, indent=4, ensure_ascii=False)
+    print("🔄 Contatos qualificados resetados para o novo dia.")
 
 @tasks.loop(seconds=10)
 async def monitorar_arquivos_operadores():
